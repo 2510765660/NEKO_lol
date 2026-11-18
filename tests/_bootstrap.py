@@ -17,25 +17,25 @@ from __future__ import annotations
 import importlib.util
 import sys
 from pathlib import Path
+from types import ModuleType
 
 PLUGIN_DIR = Path(__file__).resolve().parent.parent
 
 
-def ensure_plugin_package() -> str:
-    """确保能 import 到插件包，返回可用的模块名。"""
+def ensure_plugin_package() -> ModuleType:
+    """加载当前目录的插件包，返回模块对象。"""
     # 1) 开发目录：上一级就是父目录，neko_lol 是普通包
     if PLUGIN_DIR.name == "neko_lol" and str(PLUGIN_DIR.parent) not in sys.path:
         sys.path.insert(0, str(PLUGIN_DIR.parent))
     if PLUGIN_DIR.name == "neko_lol":
         try:
-            import neko_lol  # noqa: F401
-            return "neko_lol"
+            return importlib.import_module("neko_lol")
         except ImportError:
             pass
 
     # 2) 发布仓库：目录名不是 neko_lol，手动按包加载
     if "neko_lol" in sys.modules:
-        return "neko_lol"
+        return sys.modules["neko_lol"]
     init = PLUGIN_DIR / "__init__.py"
     spec = importlib.util.spec_from_file_location(
         "neko_lol",
@@ -47,4 +47,4 @@ def ensure_plugin_package() -> str:
     module = importlib.util.module_from_spec(spec)
     sys.modules["neko_lol"] = module
     spec.loader.exec_module(module)
-    return "neko_lol"
+    return module

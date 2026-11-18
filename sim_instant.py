@@ -19,17 +19,16 @@
 from __future__ import annotations
 
 import asyncio
+import importlib
 import sys
 from pathlib import Path
 
 _HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(_HERE.parent))
-sys.path.insert(0, str(_HERE))
 sys.path.insert(0, str(_HERE / "tests"))
 
-import fixtures  # noqa: E402
-import neko_lol  # noqa: E402
-from test_session import FakeClock, Harness  # noqa: E402
+fixtures = importlib.import_module("fixtures")
+test_session = importlib.import_module("test_session")
+neko_lol = test_session.neko_lol
 
 TICK = 2.0
 ME = "我"
@@ -151,10 +150,10 @@ def _players() -> list:
 
 
 async def main() -> int:
-    clock = FakeClock()
+    clock = test_session.FakeClock()
     neko_lol.time = clock  # type: ignore[assignment]
 
-    h = Harness(clock)
+    h = test_session.Harness(clock)
     await h.start()
     h.client.in_game = True
     h.client.events = []

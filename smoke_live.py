@@ -24,12 +24,9 @@ from __future__ import annotations
 import asyncio
 import sys
 import time
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-from neko_lol.game_model import MatchState  # noqa: E402
-from neko_lol.live_client import LiveClient, NotInGame  # noqa: E402
+from game_model import MatchState
+from live_client import LiveClient, NotInGame
 
 
 async def main() -> int:
@@ -86,7 +83,7 @@ async def main() -> int:
     # "主人击杀了对面的 X（助攻：某某）"，空数组就等于从没说过。
     kills = [e for e in events if e.get("EventName") == "ChampionKill"]
     if kills:
-        print(f"\n  最近一条 ChampionKill 的原始字段（核对助攻是否可用）：")
+        print("\n  最近一条 ChampionKill 的原始字段（核对助攻是否可用）：")
         last = kills[-1]
         for key in ("EventID", "EventTime", "KillerName", "VictimName", "Assisters"):
             mark = "" if key in last else "   ← 字段缺失"

@@ -15,7 +15,7 @@
 是两回事。
 
 线程模型：轮询跑在 ``@timer_interval`` 的定时器线程上（有独立事件循环），
-每个轮询周期内自建 ``aiohttp`` 会话，避免跨事件循环复用连接池。
+本地 HTTP 请求放在线程池执行，避免阻塞事件循环。
 LLM 工具跑在宿主的事件循环上，只读 ``self._last_state`` 这个引用。
 """
 
@@ -96,18 +96,18 @@ except ModuleNotFoundError:  # 离线跑单元测试时的等价兜底
 
 from .config import PluginConfig
 from .cues import (
+    _DRAGON_TYPES,
+    _SPEAK_INSTRUCTION,
     ASSIST_BACKGROUND_HINT,
-    Cue,
     LEGENDARY_STREAK,
     PRIORITIES,
     TIER_AMBIENT,
     TIER_CRITICAL,
+    Cue,
+    MyMultikill,
     OthersMultikill,
-    _DRAGON_TYPES,
-    _SPEAK_INSTRUCTION,
     _normalize_body,
     _parse_structure,
-    MyMultikill,
     build_event_cue,
     build_post_game_cue,
     build_summary_cue,
@@ -123,7 +123,6 @@ from .milestones import LaneMilestones
 from .narrator import Narrator
 
 # 定时器的最小粒度。配置里的 poll_interval_seconds 会被向上取整到这个值。
-_TICK_SECONDS = 2
 # 连续多少次拿不到数据才判定"对局结束"。单次失败可能只是网络抖动，
 # 立刻宣布结束会产出莫名其妙的赛后总结。
 # GameEnd 之后隔多久播赛后总结（秒）。
@@ -304,7 +303,7 @@ class NekoLolPlugin(NekoPluginBase):
 
     # ── 主轮询 ──────────────────────────────────────────────────
 
-    @timer_interval(id="poll_match", seconds=_TICK_SECONDS, auto_start=True)
+    @timer_interval(id="poll_match", seconds=2, auto_start=True)
     async def poll_match(self, **_):
         if not self._cfg.enabled:
             return Ok({"status": "disabled"})
@@ -333,8 +332,7 @@ class NekoLolPlugin(NekoPluginBase):
 
     async def _poll_body(self, now: float) -> Ok:
         try:
-            # 一次轮询共用一个 HTTP 会话取两个端点 —— 也保证事件和战绩
-            # 来自同一拍，不会错位。
+            # 一次轮询顺序读取事件和战绩，避免错开一拍。
             events, data = await self._client.snapshot()
         except NotInGame:
             self._on_data_missing(now)
@@ -813,7 +811,7 @@ class NekoLolPlugin(NekoPluginBase):
             return False
 
         self._first_blood_suppress = None
-        self._log(f"[一血] 抑制同一击杀的人头播报（{killer} → {victim}）")
+        self._log("[一血] 抑制同一击杀的人头播报")
         return True
 
     def _streak_note_for(self, kind: str, streak_before: int) -> str:
@@ -948,7 +946,7 @@ class NekoLolPlugin(NekoPluginBase):
         detail = (
             f"{side} 第 {self._dragon_counts[side]} 条"
             if side in self._dragon_counts
-            else f"阵营未知 第 ? 条"
+            else "阵营未知 第 ? 条"
         )
         # 每条都打全场序号：龙魂判定只看这个数，出问题时一眼能对出来。
         self._log(
