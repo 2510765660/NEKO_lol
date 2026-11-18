@@ -19,7 +19,7 @@ sys.path.insert(0, str(_HERE.parent))
 sys.path.insert(0, str(_HERE))
 sys.path.insert(0, str(_HERE / "tests"))
 
-_MODULES = ("test_offline", "test_session")
+_MODULES = ("tests.test_offline", "tests.test_session")
 
 
 def main() -> int:

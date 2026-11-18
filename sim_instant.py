@@ -20,16 +20,6 @@ from __future__ import annotations
 
 import asyncio
 import sys
-from pathlib import Path
-
-_HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(_HERE.parent))
-sys.path.insert(0, str(_HERE))
-sys.path.insert(0, str(_HERE / "tests"))
-
-import fixtures  # noqa: E402
-import neko_lol  # noqa: E402
-from test_session import FakeClock, Harness  # noqa: E402
 
 TICK = 2.0
 ME = "我"
@@ -84,7 +74,34 @@ def streak_for(at: float) -> int:
     return _STREAK_BY_TIME.get(at, 2)
 
 
+def _deps() -> tuple:
+    """配好 sys.path 并导入依赖，返回 (fixtures, neko_lol, FakeClock, Harness)。
+
+    插件 import 只能放在函数里：路径设置必须先于 import，而"先在模块级写
+    sys.path.insert、再 import"会被 lint 判 E402。
+    """
+    from pathlib import Path
+
+    here = Path(__file__).resolve().parent
+    for path in (str(here / "tests"), str(here)):
+        if path not in sys.path:
+            sys.path.insert(0, path)
+
+    # tests 包的初始化负责把插件目录接入 sys.path；发布仓库布局下它还会把
+    # 插件目录注册成 neko_lol 包（这时目录名不是 neko_lol，普通 import 找不到）。
+    import tests
+
+    _ = tests.PLUGIN_DIR
+
+    import fixtures
+    import neko_lol
+    from test_session import FakeClock, Harness
+
+    return fixtures, neko_lol, FakeClock, Harness
+
+
 def _make(event: tuple[str, ...], event_id: int, at: float) -> dict:
+    fixtures = _deps()[0]
     name = event[0]
     if name == "ChampionKill":
         return fixtures.kill_event(event_id, event[1], event[2], at=at)
@@ -128,12 +145,14 @@ def _expectation(event: tuple[str, ...]) -> tuple[float, str, str] | None:
 
 
 def _make_multikill(event_id: int, streak: int, at: float) -> dict:
+    fixtures = _deps()[0]
     return fixtures.simple_event(
         event_id, "Multikill", at=at, KillerName=ME, KillStreak=streak
     )
 
 
 def _players() -> list:
+    fixtures = _deps()[0]
     return [
         fixtures.make_player(
             "我", "Yasuo", "ORDER", kills=8, deaths=1, assists=2, cs=90, level=13
@@ -151,6 +170,7 @@ def _players() -> list:
 
 
 async def main() -> int:
+    fixtures, neko_lol, FakeClock, Harness = _deps()
     clock = FakeClock()
     neko_lol.time = clock  # type: ignore[assignment]
 

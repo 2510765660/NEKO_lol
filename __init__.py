@@ -27,6 +27,34 @@ from collections import deque
 from pathlib import Path
 from typing import Any, Deque
 
+from .config import PluginConfig
+from .cues import (
+    _DRAGON_TYPES,
+    _SPEAK_INSTRUCTION,
+    ASSIST_BACKGROUND_HINT,
+    LEGENDARY_STREAK,
+    PRIORITIES,
+    TIER_AMBIENT,
+    TIER_CRITICAL,
+    Cue,
+    MyMultikill,
+    OthersMultikill,
+    _normalize_body,
+    _parse_structure,
+    build_event_cue,
+    build_post_game_cue,
+    build_summary_cue,
+    describe_champion_kill,
+    has_assists,
+    is_announced,
+    render_plain,
+    tier_for,
+)
+from .game_model import MatchState, load_name_map
+from .live_client import LiveClient, NotInGame
+from .milestones import LaneMilestones
+from .narrator import Narrator
+
 try:  # 正常运行时走真实 SDK
     from plugin.sdk.plugin import (
         Err,
@@ -94,33 +122,6 @@ except ModuleNotFoundError:  # 离线跑单元测试时的等价兜底
             self.ctx = ctx
             self.logger = None
 
-from .config import PluginConfig
-from .cues import (
-    ASSIST_BACKGROUND_HINT,
-    Cue,
-    LEGENDARY_STREAK,
-    PRIORITIES,
-    TIER_AMBIENT,
-    TIER_CRITICAL,
-    OthersMultikill,
-    _DRAGON_TYPES,
-    _SPEAK_INSTRUCTION,
-    _normalize_body,
-    _parse_structure,
-    MyMultikill,
-    build_event_cue,
-    build_post_game_cue,
-    build_summary_cue,
-    describe_champion_kill,
-    has_assists,
-    is_announced,
-    render_plain,
-    tier_for,
-)
-from .game_model import MatchState, load_name_map
-from .live_client import LiveClient, NotInGame
-from .milestones import LaneMilestones
-from .narrator import Narrator
 
 # 定时器的最小粒度。配置里的 poll_interval_seconds 会被向上取整到这个值。
 _TICK_SECONDS = 2
@@ -948,7 +949,7 @@ class NekoLolPlugin(NekoPluginBase):
         detail = (
             f"{side} 第 {self._dragon_counts[side]} 条"
             if side in self._dragon_counts
-            else f"阵营未知 第 ? 条"
+            else "阵营未知 第 ? 条"
         )
         # 每条都打全场序号：龙魂判定只看这个数，出问题时一眼能对出来。
         self._log(

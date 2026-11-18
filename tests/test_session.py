@@ -8,19 +8,11 @@
 
 from __future__ import annotations
 
-import sys
 import unittest
-from pathlib import Path
 
-_HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(_HERE))  # fixtures / _bootstrap
-from _bootstrap import ensure_plugin_package  # noqa: E402
-
-ensure_plugin_package()
-
-import fixtures  # noqa: E402
-import neko_lol  # noqa: E402
-from neko_lol.live_client import NotInGame  # noqa: E402
+import fixtures
+import neko_lol
+from neko_lol.live_client import NotInGame
 
 
 class FakeClock:

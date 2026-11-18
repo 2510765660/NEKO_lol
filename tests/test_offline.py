@@ -10,20 +10,16 @@
 
 from __future__ import annotations
 
-import sys
 import unittest
 from pathlib import Path
 
-# 让测试能 import 到插件包（插件的实际包名是 plugin.plugins.neko_lol，
-# 离线时把插件目录的父目录加进 sys.path，直接当普通包导入）。
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _bootstrap import PLUGIN_DIR as _PLUGIN_DIR, ensure_plugin_package  # noqa: E402
+import neko_lol as neko_lol_module
+from neko_lol import cues, game_model, milestones, narrator
+from neko_lol.config import DEFAULT_ANNOUNCE, PluginConfig
 
-ensure_plugin_package()
-
-import neko_lol as neko_lol_module  # noqa: E402
-from neko_lol import cues, game_model, milestones, narrator  # noqa: E402
-from neko_lol.config import DEFAULT_ANNOUNCE, PluginConfig  # noqa: E402
+# 搜索路径由 tests/__init__.py 在包初始化时配好，所以上面这些 import 能
+# 保持在文件顶部（否则会被 lint 判 E402）。
+_PLUGIN_DIR = Path(__file__).resolve().parent.parent
 
 
 def _player(
@@ -1400,7 +1396,6 @@ class TestOnlyMyEvents(unittest.TestCase):
     def test_pipeline_mutes_ally_kills(self):
         """端到端：队友人头走完 _process_events 之后什么都不该发生。"""
         import asyncio
-
         import sys
         from pathlib import Path as _P
 
@@ -1755,7 +1750,6 @@ class TestNarrator(unittest.TestCase):
         早先多条合并时把 key 硬写成 "multikill"，于是"敌方拆掉两座塔"
         的日志里写着 multikill —— 排查时完全误导（真实日志实证）。
         """
-        sent: list = []
         cues_out: list = []
         cfg = narrator.NarratorConfig(window_seconds=30)
         n = narrator.Narrator(
@@ -2429,6 +2423,7 @@ class TestPluginToml(unittest.TestCase):
         漏一个 key，那个开关在面板上就永远调不到。
         """
         import asyncio
+
         import neko_lol
 
         plugin = neko_lol.NekoLolPlugin(ctx=None)
@@ -2493,8 +2488,6 @@ class TestPluginToml(unittest.TestCase):
         visibility 与 ai_behavior 独立：默认 visibility=[]，模型照样回应，
         只是聊天里看不到括号提示。
         """
-        import re
-
         source = (_PLUGIN_DIR / "ui" / "panel.tsx").read_text(encoding="utf-8")
         self.assertIn("set_show_prompt_in_chat", source)
         self.assertIn("在聊天里显示提示文本", source)
