@@ -1,0 +1,171 @@
+[plugin]
+id = "neko_lol"
+name = "英雄联盟陪玩"
+type = "plugin"
+description = "把英雄联盟的对局事件和实时战绩喂给猫娘：局内关键事件播报、定期战况小结、赛后总结，并且可以在聊天里直接问当前战况。只读官方 Live Client Data API（127.0.0.1:2999），不读游戏内存、不注入、不发送任何操作指令。"
+short_description = "LOL 陪玩：局内事件播报 + 实时战绩问答，只读官方本地 API。"
+keywords = ["lol", "league of legends", "英雄联盟", "陪玩", "companion", "战绩", "对局", "live client data"]
+version = "0.1.0"
+entry = "plugin.plugins.neko_lol:NekoLolPlugin"
+
+[plugin.author]
+name = "N.E.K.O 用户自建"
+
+[plugin.sdk]
+recommended = ">=0.1.0,<0.2.0"
+supported = ">=0.1.0,<0.3.0"
+
+[plugin.i18n]
+default_locale = "zh-CN"
+locales_dir = "i18n"
+
+[plugin.store]
+enabled = true
+
+[plugin_runtime]
+enabled = true
+# 陪玩插件开箱即用：随 N.E.K.O 启动。不在对局中时轮询开销极低
+# （本地端口连接被拒，毫秒级返回）。
+auto_start = true
+
+# ── 面板：逐项开关播报 ───────────────────────────────────────────
+[plugin.ui]
+enabled = true
+
+[[plugin.ui.panel]]
+id = "settings"
+# 直接写中文，不用 $i18n —— 面板标题不该随宿主 locale 变。
+title = "播报设置"
+# .tsx 后缀 → Hosted TSX 模式（在线编译，组件来自 @neko/plugin-ui）
+entry = "ui/panel.tsx"
+# 必须匹配 Python 侧 @ui.context(id="lol_settings")
+context = "lol_settings"
+# state:read 读 props.state；action:call 才能调 set_announce / set_dry_run
+permissions = ["state:read", "action:call"]
+
+# ══════════════════════════════════════════════════════════════════
+#  运行配置
+#
+#  注意：TOML 里一旦打开 [neko_lol.xxx] 子表，后面的裸键就都归那个子表了。
+#  所以本文件把所有标量开关集中在 [neko_lol] 段内写完，唯一的子表
+#  （announce）放在最末尾。往这里加配置时请保持这个顺序，
+#  否则新键会悄悄落进子表、读不到。
+#
+#  每一项都有内置默认值，删掉任何一行都不会让插件起不来。
+# ══════════════════════════════════════════════════════════════════
+[neko_lol]
+enabled = true
+
+# 干跑：走完整链路但只写日志、不真的让猫娘说话。第一次装建议设 true
+# 观察几局，确认事件识别正确再改回 false。
+dry_run = false
+
+# ── Live Client Data API ─────────────────────────────────────────
+# 官方只读接口。端口 2999 只在进入对局后存在，没进游戏时连不上是正常的。
+# 先试 https（官方用自签证书），连接层失败再回落 http，兼容不同区服。
+base_url = "https://127.0.0.1:2999/liveclientdata"
+allow_http_fallback = true
+# 某些安全软件/防火墙过滤驱动会给"被拒绝的本地连接"叠加固定延迟
+# （这台机器实测 2.05 秒/次），所以超时留足余量，别贴着探测延迟设。
+http_timeout_seconds = 5.0
+
+# ── 轮询节奏 ─────────────────────────────────────────────────────
+# 定时器本身 2 秒一跳，这里控制实际的最短轮询间隔（小于 2 会被夹到 2）。
+poll_interval_seconds = 2.0
+# 不在对局时的轮询间隔。局外每次探测都要白跑 https+http 两次失败，
+# 所以降频。进游戏有加载画面兜底，晚发现几秒无感。
+idle_poll_interval_seconds = 5.0
+# 定期战况小结的间隔。0 表示关闭定期小结，只播报关键事件。
+summary_interval_seconds = 300.0
+# 对局开始多久之后才开始定期小结（避免刚进游戏就报一次"0/0/0"）。
+summary_first_at_seconds = 900.0
+# 嚎哭深渊系（大乱斗 / 海克斯大乱斗）：局短、节奏快，单独一套节奏。
+# 第 5 分钟首播，之后每 3 分钟一次。
+aram_summary_first_at_seconds = 480.0
+aram_summary_interval_seconds = 180.0
+
+# ── 大乱斗降噪（2026-11-17）──────────────────────────────────────
+# 大乱斗人头密度是峡谷的 3~4 倍、时长只有一半，同样的规则会刷屏。
+# 人头/阵亡改走环境档：一波团合并成一句。
+aram_kills_ambient = true
+# 死亡只播有信息量的：连杀 ≥3 被断，或 20 秒内连着倒下两次。
+# 大乱斗里"死一次"本身完全不值得报。
+aram_death_only_notable = true
+# 爆发小结在大乱斗收紧：8 人 / 120 秒（峡谷是 5 人 / 60 秒）。
+aram_burst_kills = 8
+aram_burst_cooldown_seconds = 120.0
+
+# ── 爆发小结 ──────────────────────────────────────────────────────
+# 短时间大量人头时额外播一次小结（团战打完正好报个战况）。
+# 只在开局 summary_burst_after_seconds 之后启用；窗口内人头数达标即触发；
+# 两次之间至少隔冷却时间。人头不分敌我 —— 团战两边都在死人。
+# 触发时如果同一拍有团灭，则跳过（团灭已经把这一波说清楚了）。
+summary_burst_after_seconds = 900.0
+summary_burst_kills = 5
+summary_burst_window_seconds = 30.0
+summary_burst_cooldown_seconds = 60.0
+# 插件中途启动/重载时，如果对局已进行超过这个秒数，就只从当前进度开始
+# 播报、不回放已经发生的事件。调小会让"重载后重播半局"，调大会让
+# "开局就重载时漏掉一血"。
+join_replay_max_game_time_seconds = 90.0
+
+# 判定"对局结束"需要连续拿不到数据多久（秒）。
+# 单纯按次数判太脆弱：客户端抖一下就会误判成对局结束、放出假的赛后总结。
+game_over_grace_seconds = 20.0
+
+# ── 播报窗口（唯一的节流参数）────────────────────────────────────
+# 每条播报都**直接触发**，但进入一个冷却窗口：窗口内新来的全部合并，
+# 倒计时结束时一起播报。想更安静就调大它，30 秒是实测比较舒服的值。
+window_seconds = 10.0
+# 合并后最多列几条正文，超出折叠成"等共 N 条"。
+merge_max_items = 6
+# 战绩行冷却（秒）：距离上次带战绩的播报不足这个数，就不再挂
+# 「主人现在 X—Y—Z，N 级」。资源类事件一场能出十几个，逐条带像在读报表。
+# 0 = 每次播报都带。
+stats_cooldown_seconds = 60.0
+# 播报的提示文本要不要显示在聊天窗口。
+# 关掉（默认）时模型照样读到并带语音回应，只是聊天里看不到那段括号提示；
+# 开着适合调试——能直接看到模型收到了什么。
+show_prompt_in_chat = false
+# 常规档两条播报之间的最小间隔（秒）。
+# 间隔不够时后来者会进窗口合并，不丢。
+normal_gap_seconds = 3.0
+
+# ── 内容筛选 ─────────────────────────────────────────────────────
+# 只播主人自己的事：队友击杀/阵亡、对面互杀都不播。
+only_my_events = true
+# 按接口返回顺序推断分路（上单→打野→中单→ADC→辅助），开局会说
+# "主人走上单，对位的是对面的 亚索"。
+# ⚠ 只有**排位和灵活排位**的顺序是固定的。常玩普通匹配就设 false。
+infer_lane_positions = true
+# 别人（队友或对面）的连杀：达到几杀才播报。0 = 完全不说，3 = 三杀及以上。
+others_multikill_min_streak = 3
+# 别人的连杀攒多久再播（秒），取最高那条。
+others_multikill_settle_seconds = 4.0
+# 对局结束后用最后一份快照做一次总结。
+post_game_summary = true
+
+# 玩家自己在聊天时，这段时间内不主动播报。0 = 不理会，照常说。
+user_chat_quiet_window_seconds = 0.0
+
+
+[neko_lol.announce]
+game_start = true
+game_end = true
+first_blood = true
+champion_kill = true
+my_death = true
+# 辅助位专用：主人助攻的人头也播（只在峡谷排位、辅助位生效）
+my_assist = true
+# 分路里程碑：按主人所在分路给阶段性播报（峡谷征召有效）
+milestone = true
+multikill = true
+ace = true
+dragon_kill = true
+baron_kill = true
+herald_kill = true
+turret_killed = true
+inhib_killed = true
+# 定期战况小结 / 赛后总结也能单独关掉
+summary = true
+post_game = true

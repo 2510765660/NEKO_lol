@@ -1,0 +1,121 @@
+# N.E.K.O 运行时配置模板（英雄联盟陪玩）
+#
+# 首次运行时宿主会把这份模板复制到用户数据目录：
+#   %LOCALAPPDATA%\N.E.K.O\plugins\neko_lol\config\plugin.toml
+# 之后改那份副本，不要改这里。
+#
+# 这里只列运行参数。每一项都有内置默认值，删掉任何一行都不会让插件坏掉。
+# 想恢复默认：把对应行删掉，或者整段清空。
+#
+# 注意 TOML 的段落规则：一旦打开 [neko_lol.announce] 之类的子表，
+# 后面的裸键就都归那个子表了。加新配置时请把标量键写在子表之前。
+
+[neko_lol]
+enabled = true
+
+# 干跑：完整走一遍识别和仲裁，但只写日志、不真的让猫娘说话。
+# 第一次装强烈建议先设 true 打一局，去插件日志里确认事件识别对不对。
+dry_run = false
+
+# ── 接口 ─────────────────────────────────────────────────────────
+base_url = "https://127.0.0.1:2999/liveclientdata"
+allow_http_fallback = true
+http_timeout_seconds = 5.0
+
+# ── 节奏 ─────────────────────────────────────────────────────────
+# 在局内的轮询间隔，最小 2 秒（受定时器粒度限制）。
+poll_interval_seconds = 2.0
+# 不在局内的轮询间隔。局外每次探测都要白跑两次连接，所以降频。
+idle_poll_interval_seconds = 5.0
+# 定期小结：对局第 10 分钟首播，之后每 5 分钟一次。
+# 调度基准是**对局时间**，不是墙钟 —— 播报点始终落在 10:00/15:00/20:00。
+# 设 summary_interval_seconds = 0 就关闭定期小结。
+summary_first_at_seconds = 900.0
+summary_interval_seconds = 300.0
+# 嚎哭深渊系（大乱斗 / 海克斯大乱斗）：局短、节奏快，单独一套节奏。
+# 第 5 分钟首播，之后每 3 分钟一次。设 aram_summary_interval_seconds = 0 关闭。
+aram_summary_first_at_seconds = 480.0
+aram_summary_interval_seconds = 180.0
+
+# ── 大乱斗降噪（2026-11-17）──────────────────────────────────────
+# 大乱斗人头密度是峡谷的 3~4 倍、时长只有一半，同样的规则会刷屏。
+# 人头/阵亡改走环境档：一波团合并成一句。
+aram_kills_ambient = true
+# 死亡只播有信息量的：连杀 ≥3 被断，或 20 秒内连着倒下两次。
+# 大乱斗里"死一次"本身完全不值得报。
+aram_death_only_notable = true
+# 爆发小结在大乱斗收紧：8 人 / 120 秒（峡谷是 5 人 / 60 秒）。
+aram_burst_kills = 8
+aram_burst_cooldown_seconds = 120.0
+
+summary_burst_after_seconds = 900.0
+summary_burst_kills = 5
+summary_burst_window_seconds = 30.0
+summary_burst_cooldown_seconds = 60.0
+# 中途启动/重载时，对局已进行超过这个秒数就不回放历史事件。
+join_replay_max_game_time_seconds = 90.0
+# 判定"对局结束"前，要连续拿不到数据多久（秒）。调小会让客户端抖一下
+# 就放出假的赛后总结。
+game_over_grace_seconds = 20.0
+
+# ── 播报窗口（唯一的节流参数）────────────────────────────────────
+# 每条播报都**直接触发**，但进入一个冷却窗口：窗口内新来的全部合并，
+# 倒计时结束时一起播报。
+#
+#   0 秒   → 每条都立刻说（一波团战会连出十几条，不推荐）
+#   10 秒  → 默认，实测比较舒服
+#   60 秒  → 很安静，适合只想听个大概
+window_seconds = 10.0
+# 合并后最多列几条正文，超出折叠成"等共 N 条"。
+merge_max_items = 6
+# 战绩行冷却（秒）：距离上次带战绩的播报不足这个数，就不再挂
+# 「主人现在 X—Y—Z，N 级」。资源类事件一场能出十几个，逐条带像在读报表。
+# 0 = 每次播报都带。
+stats_cooldown_seconds = 60.0
+# 播报的提示文本要不要显示在聊天窗口。
+# 关掉（默认）时模型照样读到并带语音回应，只是聊天里看不到那段括号提示；
+# 开着适合调试——能直接看到模型收到了什么。
+show_prompt_in_chat = false
+# 常规档两条播报之间的最小间隔（秒）。
+# 间隔不够时后来者会进窗口合并，不丢。
+normal_gap_seconds = 3.0
+
+# 玩家自己在聊天时，这段时间内不主动播报。0 = 不理会，照常说。
+user_chat_quiet_window_seconds = 0.0
+
+# ── 内容筛选 ─────────────────────────────────────────────────────
+# 只播主人自己的事：队友击杀/阵亡、对面互杀都不播。
+only_my_events = true
+# 按接口返回顺序推断分路（上单→打野→中单→ADC→辅助），开局会说
+# "主人走上单，对位的是对面的 亚索"。
+# ⚠ 只有**排位和灵活排位**的顺序是固定的。常玩普通匹配就设 false。
+infer_lane_positions = true
+# 别人（队友或对面）的连杀：达到几杀才播报。0 = 完全不说，3 = 三杀及以上。
+others_multikill_min_streak = 3
+# 别人的连杀攒多久再播（秒），取最高那条。
+others_multikill_settle_seconds = 4.0
+
+# ── 赛后 ─────────────────────────────────────────────────────────
+post_game_summary = true
+
+# ── 逐类开关 ─────────────────────────────────────────────────────
+# false = 完全不为这类事件开口（连合并都不进）。
+[neko_lol.announce]
+game_start = true
+game_end = true
+first_blood = true
+champion_kill = true
+my_death = true
+# 辅助位专用：主人助攻的人头也播（只在峡谷排位、辅助位生效）
+my_assist = true
+milestone = true
+multikill = true
+ace = true
+dragon_kill = true
+baron_kill = true
+herald_kill = true
+turret_killed = true
+inhib_killed = true
+# 定期战况小结 / 赛后总结也能单独关掉
+summary = true
+post_game = true

@@ -1,0 +1,39 @@
+{
+  "actions": {
+    "set_announce": {
+      "label": "切换事件播报"
+    },
+    "set_dry_run": {
+      "label": "切换干跑"
+    },
+    "set_show_prompt_in_chat": {
+      "label": "切换提示文本显示"
+    }
+  },
+  "entries": {
+    "set_announce": {
+      "name": "切换事件播报",
+      "description": "打开或关闭某一类对局事件的播报。由插件面板调用。"
+    },
+    "set_dry_run": {
+      "name": "切换干跑",
+      "description": "干跑模式下完整识别和仲裁，但只写日志、不让猫娘说话。由插件面板调用。"
+    },
+    "lol_status": {
+      "name": "陪玩状态",
+      "description": "查看陪玩插件当前状态：是否连上对局、在不在局内、最近播报了什么。"
+    },
+    "lol_summary_now": {
+      "name": "立刻说战况",
+      "description": "不等定期小结，立刻让猫娘点评一次当前战况。仅在局内有效。"
+    },
+    "lol_diagnose": {
+      "name": "连接自检",
+      "description": "直接探测 Live Client Data API，报告能不能连上、走的 https 还是 http。装完插件第一次用这个确认环境是否正常。"
+    },
+    "set_show_prompt_in_chat": {
+      "name": "切换提示文本显示",
+      "description": "控制播报的提示文本要不要显示在聊天窗口。关掉时猫娘照样带语音回应，只是聊天里看不到那段括号提示。由插件面板调用。"
+    }
+  }
+}

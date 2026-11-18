@@ -1,0 +1,737 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "plugin_runtime": {
+      "type": "object",
+      "title": "Runtime settings",
+      "description": "Plugin availability and automatic startup settings.",
+      "x-title-i18n": {
+        "zh-CN": "运行设置",
+        "zh-TW": "執行設定",
+        "en": "Runtime settings"
+      },
+      "x-description-i18n": {
+        "zh-CN": "插件的启用与自动启动设置。",
+        "zh-TW": "外掛程式的啟用與自動啟動設定。",
+        "en": "Plugin availability and automatic startup settings."
+      },
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Enable plugin",
+          "x-title-i18n": {
+            "zh-CN": "启用插件",
+            "zh-TW": "啟用外掛程式",
+            "en": "Enable plugin"
+          },
+          "x-description-i18n": {
+            "zh-CN": "是否允许加载此插件。",
+            "zh-TW": "是否允許載入此外掛程式。",
+            "en": "Allow this plugin to be loaded."
+          },
+          "default": true
+        },
+        "auto_start": {
+          "type": "boolean",
+          "title": "Start automatically",
+          "x-title-i18n": {
+            "zh-CN": "自动启动",
+            "zh-TW": "自動啟動",
+            "en": "Start automatically"
+          },
+          "x-description-i18n": {
+            "zh-CN": "N.E.K.O 启动时自动加载此插件。关闭后需要在插件列表里手动启动。",
+            "zh-TW": "N.E.K.O 啟動時自動載入此外掛程式。關閉後需要在清單中手動啟動。",
+            "en": "Load this plugin when N.E.K.O starts. When off, start it manually from the plugin list."
+          },
+          "default": true
+        }
+      }
+    },
+    "neko_lol": {
+      "type": "object",
+      "title": "League companion settings",
+      "description": "How the character talks about your League of Legends matches.",
+      "x-title-i18n": {
+        "zh-CN": "英雄联盟陪玩设置",
+        "zh-TW": "英雄聯盟陪玩設定",
+        "en": "League companion settings"
+      },
+      "x-description-i18n": {
+        "zh-CN": "控制猫娘怎么播报你的英雄联盟对局。所有项都有默认值，删掉任何一行都不会让插件坏掉。",
+        "zh-TW": "控制貓娘怎麼播報你的英雄聯盟對局。所有項目都有預設值，刪掉任何一行都不會讓外掛程式壞掉。",
+        "en": "Controls how the character narrates your League of Legends matches. Every field has a default; deleting any line won't break the plugin."
+      },
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "title": "Enable companion",
+          "x-title-i18n": {
+            "zh-CN": "启用陪玩",
+            "zh-TW": "啟用陪玩",
+            "en": "Enable companion"
+          },
+          "x-description-i18n": {
+            "zh-CN": "关掉后插件仍然加载，但完全不轮询对局、不播报。",
+            "zh-TW": "關閉後外掛程式仍然載入，但完全不輪詢對局、不播報。",
+            "en": "The plugin still loads, but stops polling and narrating entirely."
+          },
+          "default": true
+        },
+        "dry_run": {
+          "type": "boolean",
+          "title": "Dry run (log only)",
+          "x-title-i18n": {
+            "zh-CN": "干跑（只写日志）",
+            "zh-TW": "乾跑（只寫日誌）",
+            "en": "Dry run (log only)"
+          },
+          "x-description-i18n": {
+            "zh-CN": "完整走一遍识别和合并，但只写日志、不真的让猫娘说话。第一次装建议先打开，打一局确认事件识别正确后再关掉。",
+            "zh-TW": "完整走一遍辨識和合併，但只寫日誌、不真的讓貓娘說話。第一次安裝建議先開啟，打一局確認事件辨識正確後再關閉。",
+            "en": "Runs the full detection and merge pipeline but only writes logs — the character stays silent. Recommended for the first match to verify event detection."
+          },
+          "default": false
+        },
+        "base_url": {
+          "type": "string",
+          "title": "Live Client Data endpoint",
+          "x-title-i18n": {
+            "zh-CN": "对局数据接口地址",
+            "zh-TW": "對局資料介面位址",
+            "en": "Live Client Data endpoint"
+          },
+          "x-description-i18n": {
+            "zh-CN": "Riot 官方只读接口。端口 2999 只在进入对局后存在，没在打游戏时连不上是正常的。",
+            "zh-TW": "Riot 官方唯讀介面。連接埠 2999 只在進入對局後存在，沒在玩遊戲時連不上是正常的。",
+            "en": "Riot's official read-only endpoint. Port 2999 only exists during a match; being unreachable outside a game is normal."
+          },
+          "default": "https://127.0.0.1:2999/liveclientdata"
+        },
+        "allow_http_fallback": {
+          "type": "boolean",
+          "title": "Fall back to HTTP",
+          "x-title-i18n": {
+            "zh-CN": "https 失败时回落 http",
+            "zh-TW": "https 失敗時回退 http",
+            "en": "Fall back to HTTP"
+          },
+          "x-description-i18n": {
+            "zh-CN": "官方接口用自签证书，默认走 https。某些区服只开 http，连不上时自动换协议再试一次。",
+            "zh-TW": "官方介面用自簽憑證，預設走 https。某些區服只開 http，連不上時自動換協定再試一次。",
+            "en": "The official endpoint uses a self-signed certificate, so https is tried first. Some regions only expose http; this retries with it when the connection fails."
+          },
+          "default": true
+        },
+        "http_timeout_seconds": {
+          "type": "number",
+          "title": "Request timeout (seconds)",
+          "x-title-i18n": {
+            "zh-CN": "请求超时（秒）",
+            "zh-TW": "請求逾時（秒）",
+            "en": "Request timeout (seconds)"
+          },
+          "x-description-i18n": {
+            "zh-CN": "某些安全软件会给被拒绝的本地连接叠加约 2 秒延迟，所以超时留了余量，别贴着 2 秒设。",
+            "zh-TW": "某些安全軟體會給被拒絕的本機連線疊加約 2 秒延遲，所以逾時留了餘量，別貼著 2 秒設。",
+            "en": "Some security suites add ~2s to a refused local connection, so this leaves margin rather than hugging that delay."
+          },
+          "default": 5.0,
+          "minimum": 0.5
+        },
+        "poll_interval_seconds": {
+          "type": "number",
+          "title": "Polling interval in game (seconds)",
+          "x-title-i18n": {
+            "zh-CN": "局内轮询间隔（秒）",
+            "zh-TW": "局內輪詢間隔（秒）",
+            "en": "Polling interval in game (seconds)"
+          },
+          "x-description-i18n": {
+            "zh-CN": "在打游戏时的探测间隔，最小 2 秒（受定时器粒度限制）。",
+            "zh-TW": "在玩遊戲時的探測間隔，最小 2 秒（受計時器粒度限制）。",
+            "en": "How often to poll during a match. Minimum 2 seconds, limited by the timer tick."
+          },
+          "default": 2.0,
+          "minimum": 2.0
+        },
+        "idle_poll_interval_seconds": {
+          "type": "number",
+          "title": "Polling interval when idle (seconds)",
+          "x-title-i18n": {
+            "zh-CN": "局外轮询间隔（秒）",
+            "zh-TW": "局外輪詢間隔（秒）",
+            "en": "Polling interval when idle (seconds)"
+          },
+          "x-description-i18n": {
+            "zh-CN": "不在对局时的探测间隔。局外每次探测都要白跑两次连接，所以默认降频。进游戏有加载画面兜底，晚发现几秒无感。",
+            "zh-TW": "不在對局時的探測間隔。局外每次探測都要白跑兩次連線，所以預設降頻。進入遊戲有載入畫面緩衝，晚發現幾秒無感。",
+            "en": "How often to poll outside a match. Each probe wastes two connection attempts, so this is throttled down. The loading screen covers the delay."
+          },
+          "default": 5.0,
+          "minimum": 2.0
+        },
+        "window_seconds": {
+          "type": "number",
+          "title": "Merge window (seconds)",
+          "x-title-i18n": {
+            "zh-CN": "合并窗口（秒）",
+            "zh-TW": "合併視窗（秒）",
+            "en": "Merge window (seconds)"
+          },
+          "x-description-i18n": {
+            "zh-CN": "环境类事件（推塔、破兵营、峡谷先锋、定期小结）在这个窗口内攒着，倒计时结束合成一条播报。调大更安静，调小更即时。0 = 每条都立刻说。",
+            "zh-TW": "環境類事件（推塔、破兵營、峽谷先鋒、定期小結）在這個視窗內攢著，倒數結束合成一條播報。調大更安靜，調小更即時。0 = 每條都立刻說。",
+            "en": "Ambient events (turrets, inhibitors, herald, periodic summaries) accumulate inside this window and are spoken as one message when it expires. Larger = quieter, smaller = more immediate. 0 = speak every event right away."
+          },
+          "default": 10.0,
+          "minimum": 0
+        },
+        "normal_gap_seconds": {
+          "type": "number",
+          "title": "Minimum gap between normal announcements (seconds)",
+          "x-title-i18n": {
+            "zh-CN": "常规播报最小间隔（秒）",
+            "zh-TW": "常規播報最小間隔（秒）",
+            "en": "Minimum gap between normal announcements (seconds)"
+          },
+          "x-description-i18n": {
+            "zh-CN": "击杀、阵亡、小龙这类常规事件，两条之间至少隔这么久。间隔不够时会进窗口合并，不会丢。",
+            "zh-TW": "擊殺、陣亡、小龍這類常規事件，兩條之間至少隔這麼久。間隔不夠時會進視窗合併，不會遺失。",
+            "en": "Normal events (kills, deaths, dragons) keep at least this gap. When they come faster, they merge into the window instead of being dropped."
+          },
+          "default": 3.0,
+          "minimum": 0
+        },
+        "merge_max_items": {
+          "type": "integer",
+          "title": "Max items per merged message",
+          "x-title-i18n": {
+            "zh-CN": "一次合并最多列几条",
+            "zh-TW": "一次合併最多列幾條",
+            "en": "Max items per merged message"
+          },
+          "x-description-i18n": {
+            "zh-CN": "超过这个数量的部分折叠成「等共 N 条」，避免一次塞给模型太多内容。",
+            "zh-TW": "超過這個數量的部分摺疊成「等共 N 條」，避免一次塞給模型太多內容。",
+            "en": "Anything beyond this is folded into \"N in total\" so a single merge doesn't flood the model."
+          },
+          "default": 6,
+          "minimum": 1
+        },
+        "stats_cooldown_seconds": {
+          "type": "number",
+          "title": "Stats line cooldown (seconds)",
+          "x-title-i18n": {
+            "zh-CN": "战绩行冷却（秒）",
+            "zh-TW": "戰績列冷卻（秒）",
+            "en": "Stats line cooldown (seconds)"
+          },
+          "x-description-i18n": {
+            "zh-CN": "距离上次带战绩的播报不足这个秒数时，新的播报就不再附「主人现在 X—Y—Z，N 级」那一行。资源类事件一场能出十几个，逐条带会让整局像在读报表。战绩数字仍可从小结、赛后总结和聊天查询里拿到。0 = 每次都带。",
+            "zh-TW": "距離上次帶戰績的播報不足這個秒數時，新的播報就不再附「主人現在 X—Y—Z，N 級」。0 = 每次都帶。",
+            "en": "Minimum seconds between announcements that include the KDA line. 0 = always include."
+          },
+          "default": 60.0
+        },
+        "show_prompt_in_chat": {
+          "type": "boolean",
+          "title": "Show prompt text in chat",
+          "x-title-i18n": {
+            "zh-CN": "在聊天里显示提示文本",
+            "zh-TW": "在聊天裡顯示提示文本",
+            "en": "Show prompt text in chat"
+          },
+          "x-description-i18n": {
+            "zh-CN": "播报的提示文本要不要显示在聊天窗口。关掉（默认）时猫娘照样读到并带语音回应，只是聊天里看不到那段括号提示。开着适合调试，能直接看到模型收到了什么。",
+            "zh-TW": "播報的提示文本要不要顯示在聊天視窗。關掉（預設）時貓娘照樣讀到並帶語音回應。",
+            "en": "Whether to show the prompt text in chat. Off by default; the pet still responds with voice."
+          },
+          "default": false
+        },
+        "user_chat_quiet_window_seconds": {
+          "type": "number",
+          "title": "Stay quiet while chatting (seconds)",
+          "x-title-i18n": {
+            "zh-CN": "聊天时静默（秒）",
+            "zh-TW": "聊天時靜默（秒）",
+            "en": "Stay quiet while chatting (seconds)"
+          },
+          "x-description-i18n": {
+            "zh-CN": "你说话之后，这段时间内不主动播报（关键事件也一起压住），避免打断对话。0 = 不理会，照常说。",
+            "zh-TW": "你說話之後，這段時間內不主動播報（關鍵事件也一起壓住），避免打斷對話。0 = 不理會，照常說。",
+            "en": "After you speak, the character won't interrupt for this long — critical events included. 0 = ignore chat and narrate as usual."
+          },
+          "default": 0.0,
+          "minimum": 0
+        },
+        "summary_first_at_seconds": {
+          "type": "number",
+          "title": "First periodic summary at (match time)",
+          "x-title-i18n": {
+            "zh-CN": "首次定期小结（对局时间，秒）",
+            "zh-TW": "首次定期小結（對局時間，秒）",
+            "en": "First periodic summary at (match time)"
+          },
+          "x-description-i18n": {
+            "zh-CN": "召唤师峡谷：对局进行到第 10 分钟（600 秒）时首次点评。调度按对局时间算，暂停和重连都不会让播报点漂移。",
+            "zh-TW": "召喚師峽谷：對局進行到第 10 分鐘（600 秒）時首次點評。調度按對局時間算，暫停和重連都不會讓播報點漂移。",
+            "en": "Summoner's Rift: first commentary at 10 minutes (600s). Scheduling uses match time, so pauses and reconnects don't shift it."
+          },
+          "default": 900.0,
+          "minimum": 0
+        },
+        "summary_interval_seconds": {
+          "type": "number",
+          "title": "Periodic summary interval",
+          "x-title-i18n": {
+            "zh-CN": "定期小结间隔（秒）",
+            "zh-TW": "定期小結間隔（秒）",
+            "en": "Periodic summary interval"
+          },
+          "x-description-i18n": {
+            "zh-CN": "召唤师峡谷：首次之后每 5 分钟（300 秒）一次。设 0 关闭定期小结。",
+            "zh-TW": "召喚師峽谷：首次之後每 5 分鐘（300 秒）一次。設 0 關閉定期小結。",
+            "en": "Summoner's Rift: every 5 minutes (300s) after the first. Set 0 to disable periodic summaries."
+          },
+          "default": 300.0,
+          "minimum": 0
+        },
+        "aram_summary_first_at_seconds": {
+          "type": "number",
+          "title": "First ARAM summary at (match time)",
+          "x-title-i18n": {
+            "zh-CN": "大乱斗首次小结（对局时间，秒）",
+            "zh-TW": "大亂鬥首次小結（對局時間，秒）",
+            "en": "First ARAM summary at (match time)"
+          },
+          "x-description-i18n": {
+            "zh-CN": "嚎哭深渊（大乱斗 / 海克斯大乱斗）：局短节奏快，第 5 分钟（300 秒）就首次点评。",
+            "zh-TW": "嚎哭深淵（大亂鬥 / 海克斯大亂鬥）：局短節奏快，第 5 分鐘（300 秒）就首次點評。",
+            "en": "Howling Abyss (ARAM and its variants): shorter, faster matches, so the first summary lands at 5 minutes (300s)."
+          },
+          "default": 480.0,
+          "minimum": 0
+        },
+        "aram_summary_interval_seconds": {
+          "type": "number",
+          "title": "ARAM summary interval",
+          "x-title-i18n": {
+            "zh-CN": "大乱斗小结间隔（秒）",
+            "zh-TW": "大亂鬥小結間隔（秒）",
+            "en": "ARAM summary interval"
+          },
+          "x-description-i18n": {
+            "zh-CN": "嚎哭深渊：首次之后每 3 分钟（180 秒）一次。设 0 关闭。",
+            "zh-TW": "嚎哭深淵：首次之後每 3 分鐘（180 秒）一次。設 0 關閉。",
+            "en": "Howling Abyss: every 3 minutes (180s) after the first. Set 0 to disable."
+          },
+          "default": 180.0,
+          "minimum": 0
+        },
+        "aram_kills_ambient": {
+          "type": "boolean",
+          "title": "大乱斗人头合并播报",
+          "x-title-i18n": {
+            "zh-CN": "大乱斗人头合并播报",
+            "zh-TW": "大乱斗人头合并播报",
+            "en": "大乱斗人头合并播报"
+          },
+          "x-description-i18n": {
+            "zh-CN": "大乱斗人头密度是峡谷的 3~4 倍，逐条播会刷屏。打开后主人的人头/阵亡走环境档，一波多个击杀合并成一句。",
+            "zh-TW": "大乱斗人头密度是峡谷的 3~4 倍，逐条播会刷屏。打开后主人的人头/阵亡走环境档，一波多个击杀合并成一句。",
+            "en": "大乱斗人头密度是峡谷的 3~4 倍，逐条播会刷屏。打开后主人的人头/阵亡走环境档，一波多个击杀合并成一句。"
+          },
+          "default": true
+        },
+        "aram_death_only_notable": {
+          "type": "boolean",
+          "title": "大乱斗只播有信息量的死亡",
+          "x-title-i18n": {
+            "zh-CN": "大乱斗只播有信息量的死亡",
+            "zh-TW": "大乱斗只播有信息量的死亡",
+            "en": "大乱斗只播有信息量的死亡"
+          },
+          "x-description-i18n": {
+            "zh-CN": "大乱斗里\"死一次\"完全不值得报。打开后只播两种死亡：连杀 ≥3 被断、或 20 秒内连着倒下两次。",
+            "zh-TW": "大乱斗里\"死一次\"完全不值得报。打开后只播两种死亡：连杀 ≥3 被断、或 20 秒内连着倒下两次。",
+            "en": "大乱斗里\"死一次\"完全不值得报。打开后只播两种死亡：连杀 ≥3 被断、或 20 秒内连着倒下两次。"
+          },
+          "default": true
+        },
+        "aram_burst_kills": {
+          "type": "number",
+          "title": "大乱斗爆发小结人头数",
+          "x-title-i18n": {
+            "zh-CN": "大乱斗爆发小结人头数",
+            "zh-TW": "大乱斗爆发小结人头数",
+            "en": "大乱斗爆发小结人头数"
+          },
+          "x-description-i18n": {
+            "zh-CN": "大乱斗爆发小结的门槛。5 人/30 秒在大乱斗是常态，默认提到 8 人。",
+            "zh-TW": "大乱斗爆发小结的门槛。5 人/30 秒在大乱斗是常态，默认提到 8 人。",
+            "en": "大乱斗爆发小结的门槛。5 人/30 秒在大乱斗是常态，默认提到 8 人。"
+          },
+          "default": 8
+        },
+        "aram_burst_cooldown_seconds": {
+          "type": "number",
+          "title": "大乱斗爆发小结冷却（秒）",
+          "x-title-i18n": {
+            "zh-CN": "大乱斗爆发小结冷却（秒）",
+            "zh-TW": "大乱斗爆发小结冷却（秒）",
+            "en": "大乱斗爆发小结冷却（秒）"
+          },
+          "x-description-i18n": {
+            "zh-CN": "大乱斗两次爆发小结之间的最小间隔。默认 120 秒（峡谷是 60 秒）。",
+            "zh-TW": "大乱斗两次爆发小结之间的最小间隔。默认 120 秒（峡谷是 60 秒）。",
+            "en": "大乱斗两次爆发小结之间的最小间隔。默认 120 秒（峡谷是 60 秒）。"
+          },
+          "default": 120.0
+        },
+        "summary_burst_after_seconds": {
+          "type": "number",
+          "title": "爆发小结起始时间（秒）",
+          "x-title-i18n": {
+            "zh-CN": "爆发小结起始时间（秒）",
+            "zh-TW": "爆发小结起始时间（秒）",
+            "en": "爆发小结起始时间（秒）"
+          },
+          "x-description-i18n": {
+            "zh-CN": "开局多少秒后才启用\"爆发小结\"。默认 900（15 分钟）——前 15 分钟只按定时播报。",
+            "zh-TW": "开局多少秒后才启用\"爆发小结\"。默认 900（15 分钟）——前 15 分钟只按定时播报。",
+            "en": "开局多少秒后才启用\"爆发小结\"。默认 900（15 分钟）——前 15 分钟只按定时播报。"
+          },
+          "default": 900.0
+        },
+        "summary_burst_kills": {
+          "type": "number",
+          "title": "爆发小结人头数",
+          "x-title-i18n": {
+            "zh-CN": "爆发小结人头数",
+            "zh-TW": "爆发小结人头数",
+            "en": "爆发小结人头数"
+          },
+          "x-description-i18n": {
+            "zh-CN": "窗口内人达到这个数量就补播一次小结。人头不分敌我。",
+            "zh-TW": "窗口内人达到这个数量就补播一次小结。人头不分敌我。",
+            "en": "窗口内人达到这个数量就补播一次小结。人头不分敌我。"
+          },
+          "default": 5
+        },
+        "summary_burst_window_seconds": {
+          "type": "number",
+          "title": "爆发小结窗口（秒）",
+          "x-title-i18n": {
+            "zh-CN": "爆发小结窗口（秒）",
+            "zh-TW": "爆发小结窗口（秒）",
+            "en": "爆发小结窗口（秒）"
+          },
+          "x-description-i18n": {
+            "zh-CN": "统计多少人头的滑动窗口长度。默认 30 秒。",
+            "zh-TW": "统计多少人头的滑动窗口长度。默认 30 秒。",
+            "en": "Sliding window (seconds) for counting kills. Default 30."
+          },
+          "default": 30.0
+        },
+        "summary_burst_cooldown_seconds": {
+          "type": "number",
+          "title": "爆发小结冷却（秒）",
+          "x-title-i18n": {
+            "zh-CN": "爆发小结冷却（秒）",
+            "zh-TW": "爆发小结冷却（秒）",
+            "en": "爆发小结冷却（秒）"
+          },
+          "x-description-i18n": {
+            "zh-CN": "两次爆发小结之间至少隔这么久，避免连续团战刷屏。",
+            "zh-TW": "两次爆发小结之间至少隔这么久，避免连续团战刷屏。",
+            "en": "两次爆发小结之间至少隔这么久，避免连续团战刷屏。"
+          },
+          "default": 60.0
+        },
+        "only_my_events": {
+          "type": "boolean",
+          "title": "Only announce my own events",
+          "x-title-i18n": {
+            "zh-CN": "只播报主人的事",
+            "zh-TW": "只播報主人的事",
+            "en": "Only announce my own events"
+          },
+          "x-description-i18n": {
+            "zh-CN": "只播你自己的击杀、阵亡、一血。队友拿人头、队友被杀、对面互杀都不播。关掉才会听全场战况。",
+            "zh-TW": "只播你自己的擊殺、陣亡、首殺。隊友拿人頭、隊友被殺、對面互殺都不播。關閉才會聽全場戰況。",
+            "en": "Announce only your own kills, deaths and first blood. Ally kills, ally deaths and enemy-vs-enemy trades stay silent. Turn off to follow the whole match."
+          },
+          "default": true
+        },
+        "others_multikill_min_streak": {
+          "type": "integer",
+          "title": "Announce others' multikills from N kills",
+          "x-title-i18n": {
+            "zh-CN": "别人的几杀起才播报",
+            "zh-TW": "別人的幾殺起才播報",
+            "en": "Announce others' multikills from N kills"
+          },
+          "x-description-i18n": {
+            "zh-CN": "队友或对面连杀达到这个数才说一句。3 = 三杀及以上，双杀太常见不说。0 = 完全不说。",
+            "zh-TW": "隊友或對面連殺達到這個數才說一句。3 = 三殺及以上，雙殺太常見不說。0 = 完全不說。",
+            "en": "Speak up when an ally or enemy hits this kill streak. 3 = triple kill and above; doubles are too common. 0 = never mention."
+          },
+          "default": 3,
+          "minimum": 0
+        },
+        "others_multikill_settle_seconds": {
+          "type": "number",
+          "title": "Settle time for others' multikills",
+          "x-title-i18n": {
+            "zh-CN": "别人连杀的合并等待（秒）",
+            "zh-TW": "別人連殺的合併等待（秒）",
+            "en": "Settle time for others' multikills"
+          },
+          "x-description-i18n": {
+            "zh-CN": "接口对一次五杀会连发 2/3/4/5 四条多杀事件。攒这么久取最高那条，只播一句，避免「三杀→四杀→五杀」连说三次。",
+            "zh-TW": "介面對一次五殺會連發 2/3/4/5 四條多殺事件。攢這麼久取最高那條，只播一句，避免「三殺→四殺→五殺」連說三次。",
+            "en": "The API fires four multikill events for one pentakill (2/3/4/5). Waiting this long picks the highest and speaks once instead of three times."
+          },
+          "default": 4.0,
+          "minimum": 0
+        },
+        "post_game_summary": {
+          "type": "boolean",
+          "title": "Post-game summary",
+          "x-title-i18n": {
+            "zh-CN": "赛后总结",
+            "zh-TW": "賽後總結",
+            "en": "Post-game summary"
+          },
+          "x-description-i18n": {
+            "zh-CN": "对局结束后用最后一份快照做一次总结。胜负以游戏的结算结果为准；没收到结算结果时完全不提输赢。",
+            "zh-TW": "對局結束後用最後一份快照做一次總結。勝負以遊戲的結算結果為準；沒收到結算結果時完全不提輸贏。",
+            "en": "Summarize the match from the last snapshot. Win/loss comes from the game's own result; when that's missing, the summary says nothing about it."
+          },
+          "default": true
+        },
+        "join_replay_max_game_time_seconds": {
+          "type": "number",
+          "title": "Mid-game join replay threshold",
+          "x-title-i18n": {
+            "zh-CN": "中途加入的回放阈值（秒）",
+            "zh-TW": "中途加入的回放閾值（秒）",
+            "en": "Mid-game join replay threshold"
+          },
+          "x-description-i18n": {
+            "zh-CN": "插件中途启动或重载时，如果对局已进行超过这个秒数，就只从当前进度开始播报、不回放历史事件。",
+            "zh-TW": "外掛程式中途啟動或重載時，如果對局已進行超過這個秒數，就只從目前進度開始播報、不回放歷史事件。",
+            "en": "When the plugin starts or reloads mid-match, a match older than this is adopted from the current point rather than replaying its history."
+          },
+          "default": 90.0,
+          "minimum": 0
+        },
+        "game_over_grace_seconds": {
+          "type": "number",
+          "title": "Game-over grace period",
+          "x-title-i18n": {
+            "zh-CN": "判定对局结束的宽限期（秒）",
+            "zh-TW": "判定對局結束的寬限期（秒）",
+            "en": "Game-over grace period"
+          },
+          "x-description-i18n": {
+            "zh-CN": "连续拿不到数据要持续这么久才判定对局结束。调小会让客户端抖一下就放出假的赛后总结。",
+            "zh-TW": "連續拿不到資料要持續這麼久才判定對局結束。調小會讓用戶端抖一下就放出假的賽後總結。",
+            "en": "Data must stay missing for this long before the match counts as over. Shorter values let a client hiccup produce a fake post-game summary."
+          },
+          "default": 20.0,
+          "minimum": 0
+        },
+        "announce": {
+          "type": "object",
+          "title": "Per-event switches",
+          "x-title-i18n": {
+            "zh-CN": "逐类开关",
+            "zh-TW": "逐類開關",
+            "en": "Per-event switches"
+          },
+          "x-description-i18n": {
+            "zh-CN": "关掉某一项就完全不为这类事件开口（连合并都不进）。",
+            "zh-TW": "關閉某一項就完全不為這類事件開口（連合併都不進）。",
+            "en": "Turning an item off means that event type is never spoken — it isn't even merged."
+          },
+          "properties": {
+            "game_start": {
+              "type": "boolean",
+              "x-title-i18n": {
+                "zh-CN": "对局开始",
+                "zh-TW": "對局開始",
+                "en": "Match start"
+              },
+              "default": true
+            },
+            "game_end": {
+              "type": "boolean",
+              "x-title-i18n": {
+                "zh-CN": "对局结束",
+                "zh-TW": "對局結束",
+                "en": "Match end"
+              },
+              "default": true
+            },
+            "first_blood": {
+              "type": "boolean",
+              "x-title-i18n": {
+                "zh-CN": "一血",
+                "zh-TW": "首殺",
+                "en": "First blood"
+              },
+              "default": true
+            },
+            "champion_kill": {
+              "type": "boolean",
+              "x-title-i18n": {
+                "zh-CN": "我的击杀",
+                "zh-TW": "我的擊殺",
+                "en": "My kills"
+              },
+              "default": true
+            },
+            "my_death": {
+              "type": "boolean",
+              "x-title-i18n": {
+                "zh-CN": "我的阵亡",
+                "zh-TW": "我的陣亡",
+                "en": "My deaths"
+              },
+              "default": true
+            },
+            "my_assist": {
+              "type": "boolean",
+              "x-title-i18n": {
+                "zh-CN": "主人助攻（辅助位）",
+                "zh-TW": "主人助攻（輔助位）",
+                "en": "Announce assists (support role)"
+              },
+              "default": true,
+              "title": "Announce assists (support role)",
+              "x-description-i18n": {
+                "zh-CN": "只在召唤师峡谷、征召模式、且判定主人是辅助位时生效：队友击杀时如果主人在助攻名单里，播一句「主人助攻，队友拿下了对面的 X」。辅助很少拿人头，不开这个的话一整局几乎不吭声。",
+                "zh-TW": "只在召喚師峽谷、徵召模式、且判定主人是輔助位時生效：隊友擊殺時如果主人在助攻名單裡，播一句「主人助攻，隊友拿下了對面的 X」。",
+                "en": "Only in Summoner’s Rift draft games when you are detected as support: announce kills you assisted, e.g. \"You assisted — X took down Y\"."
+              }
+            },
+            "milestone": {
+              "type": "boolean",
+              "title": "Lane milestones",
+              "x-title-i18n": {
+                "zh-CN": "分路里程碑",
+                "zh-TW": "分路里程碑",
+                "en": "Lane milestones"
+              },
+              "x-description-i18n": {
+                "zh-CN": "按主人所在分路给阶段性播报，只在召唤师峡谷征召局、且分路可信时生效。上单：15 分钟内对位单杀 3 次且全程没被对位击杀；打野：队伍人头超过 10；中单：12 分钟内完成 5 次转移击杀；ADC：20 分钟前补刀领先对面 ADC 50；辅助：第 10 / 20 个助攻。",
+                "zh-TW": "按主人所在分路給階段性播報，只在召喚師峽谷徵召局、且分路可信時生效。",
+                "en": "Lane-specific milestone announcements (Summoner’s Rift draft only)."
+              },
+              "default": true
+            },
+            "multikill": {
+              "type": "boolean",
+              "x-title-i18n": {
+                "zh-CN": "多杀（含别人三杀）",
+                "zh-TW": "多殺（含別人三殺）",
+                "en": "Multikills (incl. others)"
+              },
+              "default": true
+            },
+            "ace": {
+              "type": "boolean",
+              "x-title-i18n": {
+                "zh-CN": "团灭",
+                "zh-TW": "團滅",
+                "en": "Ace"
+              },
+              "default": true
+            },
+            "dragon_kill": {
+              "type": "boolean",
+              "x-title-i18n": {
+                "zh-CN": "小龙",
+                "zh-TW": "小龍",
+                "en": "Dragons"
+              },
+              "default": true
+            },
+            "baron_kill": {
+              "type": "boolean",
+              "x-title-i18n": {
+                "zh-CN": "大龙",
+                "zh-TW": "大龍",
+                "en": "Baron"
+              },
+              "default": true
+            },
+            "herald_kill": {
+              "type": "boolean",
+              "x-title-i18n": {
+                "zh-CN": "峡谷先锋",
+                "zh-TW": "峽谷先鋒",
+                "en": "Rift Herald"
+              },
+              "default": true
+            },
+            "turret_killed": {
+              "type": "boolean",
+              "x-title-i18n": {
+                "zh-CN": "推塔",
+                "zh-TW": "推塔",
+                "en": "Turrets"
+              },
+              "default": true
+            },
+            "inhib_killed": {
+              "type": "boolean",
+              "x-title-i18n": {
+                "zh-CN": "破兵营",
+                "zh-TW": "破兵營",
+                "en": "Inhibitors"
+              },
+              "default": true
+            },
+            "summary": {
+              "type": "boolean",
+              "x-title-i18n": {
+                "zh-CN": "定期小结",
+                "zh-TW": "定期小結",
+                "en": "Periodic summary"
+              },
+              "default": true
+            },
+            "post_game": {
+              "type": "boolean",
+              "x-title-i18n": {
+                "zh-CN": "赛后总结",
+                "zh-TW": "賽後總結",
+                "en": "Post-game summary"
+              },
+              "default": true
+            }
+          }
+        },
+        "infer_lane_positions": {
+          "type": "boolean",
+          "title": "Infer lanes from roster order",
+          "x-title-i18n": {
+            "zh-CN": "按名单顺序推断分路",
+            "zh-TW": "按名單順序推論分路",
+            "en": "Infer lanes from roster order"
+          },
+          "x-description-i18n": {
+            "zh-CN": "开局时会说「主人走上单，对位的是对面的 亚索」。接口不给分路字段，但排位和灵活排位里同队成员的排列顺序固定是上单→打野→中单→ADC→辅助。⚠ 只有排位和灵活排位成立；普通匹配没有位置选择流程，顺序不保证，请关掉。",
+            "zh-TW": "開局時會說「主人走上單，對位的是對面的 亞索」。介面不給分路欄位，但排位和靈活排位裡同隊成員的排列順序固定是上單→打野→中單→ADC→輔助。⚠ 只有排位和靈活排位成立；普通匹配沒有位置選擇流程，請關閉。",
+            "en": "Announce your lane and lane opponent at match start. The API has no lane field, but in ranked and flex-ranked the within-team roster order is fixed: top, jungle, mid, ADC, support. Only valid for those queues — turn off if you mostly play normal games."
+          },
+          "default": true
+        }
+      }
+    }
+  }
+}
