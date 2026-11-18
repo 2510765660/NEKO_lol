@@ -25,11 +25,32 @@ import asyncio
 import sys
 import time
 
-from game_model import MatchState
-from live_client import LiveClient, NotInGame
+
+def _setup_path() -> None:
+    """把插件目录接入 sys.path。
+
+    必须在 import 插件之前执行，所以调用方只能把插件 import 放在函数里 ——
+    模块级"先写代码再 import"会被 lint 判 E402。
+    """
+    from pathlib import Path
+
+    here = Path(__file__).resolve().parent
+    for path in (str(here), str(here.parent)):
+        if path not in sys.path:
+            sys.path.insert(0, path)
+
+    # tests 包的初始化负责把插件注册成 neko_lol（发布仓库布局下目录名不是
+    # neko_lol，直接 import 找不到）。
+    import tests
+
+    _ = tests.PLUGIN_DIR
 
 
 async def main() -> int:
+    _setup_path()
+    from neko_lol.game_model import MatchState
+    from neko_lol.live_client import LiveClient, NotInGame
+
     client = LiveClient(timeout=3.0)
     print(f"探测 {client.base_url}（http 回落={'开' if client.allow_http_fallback else '关'}）")
 

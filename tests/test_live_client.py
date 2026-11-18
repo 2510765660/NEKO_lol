@@ -1,11 +1,7 @@
-import importlib
 import unittest
 from unittest.mock import patch
 
-from _bootstrap import ensure_plugin_package
-
-ensure_plugin_package()
-live_client = importlib.import_module("neko_lol.live_client")
+from neko_lol import live_client
 
 
 class TestLiveClient(unittest.IsolatedAsyncioTestCase):

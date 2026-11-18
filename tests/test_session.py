@@ -8,14 +8,11 @@
 
 from __future__ import annotations
 
-import importlib
 import unittest
 
 import fixtures
-from _bootstrap import ensure_plugin_package
-
-neko_lol = ensure_plugin_package()
-NotInGame = importlib.import_module("neko_lol.live_client").NotInGame
+import neko_lol
+from neko_lol.live_client import NotInGame
 
 
 class FakeClock:

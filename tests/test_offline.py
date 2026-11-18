@@ -10,21 +10,16 @@
 
 from __future__ import annotations
 
-import importlib
 import unittest
 from pathlib import Path
 
-from _bootstrap import PLUGIN_DIR as _PLUGIN_DIR
-from _bootstrap import ensure_plugin_package
+import neko_lol as neko_lol_module
+from neko_lol import cues, game_model, milestones, narrator
+from neko_lol.config import DEFAULT_ANNOUNCE, PluginConfig
 
-neko_lol_module = ensure_plugin_package()
-cues = neko_lol_module.cues
-game_model = neko_lol_module.game_model
-milestones = neko_lol_module.milestones
-narrator = neko_lol_module.narrator
-_config = importlib.import_module("neko_lol.config")
-DEFAULT_ANNOUNCE = _config.DEFAULT_ANNOUNCE
-PluginConfig = _config.PluginConfig
+# 搜索路径由 tests/__init__.py 在包初始化时配好，所以上面这些 import 能
+# 保持在文件顶部（否则会被 lint 判 E402）。
+_PLUGIN_DIR = Path(__file__).resolve().parent.parent
 
 
 def _player(
@@ -1401,7 +1396,11 @@ class TestOnlyMyEvents(unittest.TestCase):
     def test_pipeline_mutes_ally_kills(self):
         """端到端：队友人头走完 _process_events 之后什么都不该发生。"""
         import asyncio
+        import sys
+        from pathlib import Path as _P
 
+        sys.path.insert(0, str(_P(__file__).resolve().parent.parent))
+        sys.path.insert(0, str(_P(__file__).resolve().parent))
         import fixtures
         from test_session import FakeClock, Harness
 
@@ -2489,7 +2488,6 @@ class TestPluginToml(unittest.TestCase):
         visibility 与 ai_behavior 独立：默认 visibility=[]，模型照样回应，
         只是聊天里看不到括号提示。
         """
-
         source = (_PLUGIN_DIR / "ui" / "panel.tsx").read_text(encoding="utf-8")
         self.assertIn("set_show_prompt_in_chat", source)
         self.assertIn("在聊天里显示提示文本", source)

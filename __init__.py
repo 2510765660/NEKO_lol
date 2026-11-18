@@ -27,6 +27,34 @@ from collections import deque
 from pathlib import Path
 from typing import Any, Deque
 
+from .config import PluginConfig
+from .cues import (
+    _DRAGON_TYPES,
+    _SPEAK_INSTRUCTION,
+    ASSIST_BACKGROUND_HINT,
+    LEGENDARY_STREAK,
+    PRIORITIES,
+    TIER_AMBIENT,
+    TIER_CRITICAL,
+    Cue,
+    MyMultikill,
+    OthersMultikill,
+    _normalize_body,
+    _parse_structure,
+    build_event_cue,
+    build_post_game_cue,
+    build_summary_cue,
+    describe_champion_kill,
+    has_assists,
+    is_announced,
+    render_plain,
+    tier_for,
+)
+from .game_model import MatchState, load_name_map
+from .live_client import LiveClient, NotInGame
+from .milestones import LaneMilestones
+from .narrator import Narrator
+
 try:  # 正常运行时走真实 SDK
     from plugin.sdk.plugin import (
         Err,
@@ -94,35 +122,7 @@ except ModuleNotFoundError:  # 离线跑单元测试时的等价兜底
             self.ctx = ctx
             self.logger = None
 
-from .config import PluginConfig
-from .cues import (
-    _DRAGON_TYPES,
-    _SPEAK_INSTRUCTION,
-    ASSIST_BACKGROUND_HINT,
-    LEGENDARY_STREAK,
-    PRIORITIES,
-    TIER_AMBIENT,
-    TIER_CRITICAL,
-    Cue,
-    MyMultikill,
-    OthersMultikill,
-    _normalize_body,
-    _parse_structure,
-    build_event_cue,
-    build_post_game_cue,
-    build_summary_cue,
-    describe_champion_kill,
-    has_assists,
-    is_announced,
-    render_plain,
-    tier_for,
-)
-from .game_model import MatchState, load_name_map
-from .live_client import LiveClient, NotInGame
-from .milestones import LaneMilestones
-from .narrator import Narrator
 
-# 定时器的最小粒度。配置里的 poll_interval_seconds 会被向上取整到这个值。
 # 连续多少次拿不到数据才判定"对局结束"。单次失败可能只是网络抖动，
 # 立刻宣布结束会产出莫名其妙的赛后总结。
 # GameEnd 之后隔多久播赛后总结（秒）。
