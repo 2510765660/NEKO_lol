@@ -1,3 +1,5 @@
 {
-  "python.analysis.extraPaths": ["${workspaceFolder}/vendor"]
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/vendor"
+  ]
 }

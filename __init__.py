@@ -123,6 +123,8 @@ except ModuleNotFoundError:  # 离线跑单元测试时的等价兜底
             self.logger = None
 
 
+# 定时器的最小粒度（秒）。配置里的 poll_interval_seconds 会被向上取整到这个值。
+# 注意：它只在这里说明，装饰器里必须写字面量 2 —— 静态检查不认常量名。
 # 连续多少次拿不到数据才判定"对局结束"。单次失败可能只是网络抖动，
 # 立刻宣布结束会产出莫名其妙的赛后总结。
 # GameEnd 之后隔多久播赛后总结（秒）。
@@ -303,6 +305,8 @@ class NekoLolPlugin(NekoPluginBase):
 
     # ── 主轮询 ──────────────────────────────────────────────────
 
+    # seconds 必须是**字面量**：neko-plugin 的静态检查会读这个关键字，
+    # 传常量名会被判成"must declare seconds > 0"而卡住上架。
     @timer_interval(id="poll_match", seconds=2, auto_start=True)
     async def poll_match(self, **_):
         if not self._cfg.enabled:
@@ -332,7 +336,7 @@ class NekoLolPlugin(NekoPluginBase):
 
     async def _poll_body(self, now: float) -> Ok:
         try:
-            # 一次轮询顺序读取事件和战绩，避免错开一拍。
+            # 一次轮询顺序读取事件和战况，避免错开一拍。
             events, data = await self._client.snapshot()
         except NotInGame:
             self._on_data_missing(now)
