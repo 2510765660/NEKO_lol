@@ -16,8 +16,10 @@ from pathlib import Path
 
 # 让测试能 import 到插件包（插件的实际包名是 plugin.plugins.neko_lol，
 # 离线时把插件目录的父目录加进 sys.path，直接当普通包导入）。
-_PLUGIN_DIR = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(_PLUGIN_DIR.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _bootstrap import PLUGIN_DIR as _PLUGIN_DIR, ensure_plugin_package  # noqa: E402
+
+ensure_plugin_package()
 
 import neko_lol as neko_lol_module  # noqa: E402
 from neko_lol import cues, game_model, milestones, narrator  # noqa: E402
@@ -2268,13 +2270,29 @@ class TestPluginToml(unittest.TestCase):
         cls.raw = tomllib.loads(cls.toml_path.read_text(encoding="utf-8"))
 
     def test_id_matches_directory_name(self):
-        """工作台的硬规矩：目录名必须等于插件 ID，入口包名必须匹配目录名。"""
-        self.assertEqual(self.raw["plugin"]["id"], _PLUGIN_DIR.name)
+        """目录名等于插件 ID —— 但发布仓库是例外。
+
+        两种布局都合法：
+        * **开发目录**：``Orca工作区/neko_lol/`` —— 目录名 == id。
+        * **发布仓库**（市场要求根目录直接是 plugin.toml）：根目录叫
+          ``n.e.k.o_plugin_neko_lol``，此时只能从 plugin.toml 读 id。
+        """
+        plugin_id = self.raw["plugin"]["id"]
+        self.assertTrue(plugin_id, "plugin.toml 必须有 id")
+        if _PLUGIN_DIR.name != plugin_id:
+            # 不是同名目录时，必须是市场规范的仓库目录名
+            self.assertEqual(
+                _PLUGIN_DIR.name,
+                f"n.e.k.o_plugin_{plugin_id}",
+                "目录既不是插件 ID，也不是 n.e.k.o_plugin_<id> 的仓库名",
+            )
 
     def test_entry_points_at_a_real_class(self):
         entry = self.raw["plugin"]["entry"]
         module_path, _, class_name = entry.partition(":")
-        self.assertEqual(module_path, f"plugin.plugins.{_PLUGIN_DIR.name}")
+        # entry 里的包路径永远是 plugin.plugins.<id>（宿主安装后的形态），
+        # 与开发目录名无关。
+        self.assertEqual(module_path, f"plugin.plugins.{self.raw['plugin']['id']}")
         import neko_lol
 
         self.assertTrue(

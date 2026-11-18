@@ -13,8 +13,10 @@ import unittest
 from pathlib import Path
 
 _HERE = Path(__file__).resolve().parent
-sys.path.insert(0, str(_HERE))  # fixtures
-sys.path.insert(0, str(_HERE.parent.parent))  # 让 neko_lol 可以被导入
+sys.path.insert(0, str(_HERE))  # fixtures / _bootstrap
+from _bootstrap import ensure_plugin_package  # noqa: E402
+
+ensure_plugin_package()
 
 import fixtures  # noqa: E402
 import neko_lol  # noqa: E402
