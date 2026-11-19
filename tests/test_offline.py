@@ -99,7 +99,21 @@ class TestGameModel(unittest.TestCase):
 
     def test_score_line(self):
         state = game_model.MatchState.from_all_game_data(_all_game_data())
-        self.assertEqual(state.score_line(), "我方 3—2—8 · 敌方 1—5—5")
+        self.assertEqual(state.score_line(), "我方击杀 3，敌方击杀 1（我方领先 2 个）")
+
+    def test_score_line_reports_trailing_and_tied(self):
+        """落后和持平也要说清楚，别让模型自己推。"""
+        behind = game_model.MatchState.from_all_game_data(_all_game_data(players=[
+            _player("我", "Yasuo", "ORDER", kills=1),
+            _player("敌人A", "Zed", "CHAOS", kills=5),
+        ]))
+        self.assertIn("我方落后 4 个", behind.score_line())
+
+        tied = game_model.MatchState.from_all_game_data(_all_game_data(players=[
+            _player("我", "Yasuo", "ORDER", kills=2),
+            _player("敌人A", "Zed", "CHAOS", kills=2),
+        ]))
+        self.assertIn("双方持平", tied.score_line())
 
     def test_estimated_gold_includes_items(self):
         players = [
@@ -838,7 +852,8 @@ class TestCues(unittest.TestCase):
     def test_kda_uses_dash_not_slash(self):
         """战绩用 3—1—2，不用斜杠 —— 斜杠串容易被读成分数或日期。"""
         self.assertEqual(self.state.me.kda, "3—1—2")
-        self.assertIn("3—2—8", self.state.score_line())
+        # 比分行不再用三段式 —— 只看击杀数，避免模型把"阵亡"当击杀读。
+        self.assertNotIn("—", self.state.score_line())
         self.assertNotIn("/", self.state.me.kda)
 
     def test_broadcasts_do_not_mention_cs(self):

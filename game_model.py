@@ -355,23 +355,32 @@ class MatchState:
         return "\n".join(lines)
 
     def score_line(self) -> str:
-        """"我方 12/5/20 · 敌方 5/12/8" 这种一行对比。
+        """一行比分，**不用三段式**。
+
+        早先写成 ``我方 26—26—35 · 敌方 22—31—20``（击杀—死亡—助攻）。
+        实测模型会把第二个数（阵亡）当成击杀去比，于是把「领先 4 个」
+        说成「落后」——两行的前两位还恰好互补，扫一眼就换位。所以这里
+        只给击杀数，并把领先/落后直接算出来：
+
+            "我方击杀 26，敌方击杀 22（我方领先 4 个）"
+
+        详细的 K—D—A 仍在「主人/队友/敌方」那几行里，信息没丢。
 
         认不出主人时（见 :meth:`from_all_game_data`）分不出敌我，
-        此时报"我方 0/0/0"是在撒谎，直接说明读不到。
+        此时报"我方 0"是在撒谎，直接说明读不到。
         """
         if self.me is None:
             return "双方比分未知（没认出主人是哪一位）"
         ally_k = sum(a.kills for a in self.allies)
-        ally_d = sum(a.deaths for a in self.allies)
-        ally_a = sum(a.assists for a in self.allies)
         enemy_k = sum(e.kills for e in self.enemies)
-        enemy_d = sum(e.deaths for e in self.enemies)
-        enemy_a = sum(e.assists for e in self.enemies)
-        return (
-            f"我方 {ally_k}—{ally_d}—{ally_a} · "
-            f"敌方 {enemy_k}—{enemy_d}—{enemy_a}"
-        )
+        lead = ally_k - enemy_k
+        if lead > 0:
+            verdict = f"（我方领先 {lead} 个）"
+        elif lead < 0:
+            verdict = f"（我方落后 {-lead} 个）"
+        else:
+            verdict = "（双方持平）"
+        return f"我方击杀 {ally_k}，敌方击杀 {enemy_k}{verdict}"
 
     def post_game_text(self, result: str = "") -> str:
         """赛后总结。用最后一份快照渲染。
