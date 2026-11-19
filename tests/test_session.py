@@ -11,8 +11,8 @@ from __future__ import annotations
 import unittest
 
 import fixtures
-import neko_lol
-from neko_lol.live_client import NotInGame
+import neko_lol_companion
+from neko_lol_companion.live_client import NotInGame
 
 
 class FakeClock:
@@ -69,7 +69,7 @@ class Harness:
     def __init__(self, clock: FakeClock, raw_config: dict | None = None) -> None:
         self.clock = clock
         self.pushed: list[dict] = []
-        self.plugin = neko_lol.NekoLolPlugin(ctx=None)
+        self.plugin = neko_lol_companion.NekoLolPlugin(ctx=None)
         self.plugin.logger = SilentLogger()
         self.plugin.push_message = self._push
         self.client = FakeClient()
@@ -84,9 +84,9 @@ class Harness:
         return {"submitted": True}
 
     async def start(self) -> None:
-        # 真实宿主给的是 {"neko_lol": {...}} 这种带段名的整份配置，
+        # 真实宿主给的是 {"neko_lol_companion": {...}} 这种带段名的整份配置，
         # 夹层照抄，免得测试和线上读的不是同一个形状。
-        await self.plugin._load_config({"neko_lol": self.raw_config})
+        await self.plugin._load_config({"neko_lol_companion": self.raw_config})
         self.plugin._client = self.client
 
     async def poll(self, times: int = 1, dt: float = 2.0) -> None:
@@ -128,11 +128,11 @@ def _start_fresh_game(h: Harness, *, game_time: float = 5.0) -> None:
 class TestSessionLifecycle(unittest.IsolatedAsyncioTestCase):
     def setUp(self) -> None:
         self.clock = FakeClock()
-        self._real_time = neko_lol.time
-        neko_lol.time = self.clock  # type: ignore[assignment]
+        self._real_time = neko_lol_companion.time
+        neko_lol_companion.time = self.clock  # type: ignore[assignment]
 
     def tearDown(self) -> None:
-        neko_lol.time = self._real_time  # type: ignore[assignment]
+        neko_lol_companion.time = self._real_time  # type: ignore[assignment]
 
     async def _harness(self, raw_config: dict | None = None) -> Harness:
         h = Harness(self.clock, raw_config)
@@ -218,11 +218,11 @@ class TestSessionLifecycle(unittest.IsolatedAsyncioTestCase):
         await h.poll(times=20, dt=2.0)
 
         self.assertEqual(
-            seen.get("champion_kill"), neko_lol.PRIORITIES["champion_kill"],
+            seen.get("champion_kill"), neko_lol_companion.PRIORITIES["champion_kill"],
             f"人头优先级没查表：{seen}",
         )
         self.assertEqual(
-            seen.get("my_death"), neko_lol.PRIORITIES["my_death"],
+            seen.get("my_death"), neko_lol_companion.PRIORITIES["my_death"],
             f"阵亡优先级没查表（应比人头低）：{seen}",
         )
         self.assertNotEqual(seen["my_death"], seen["champion_kill"])
@@ -640,7 +640,7 @@ class TestSessionLifecycle(unittest.IsolatedAsyncioTestCase):
         context = await h.plugin.lol_settings()
         self.assertEqual(
             [item["key"] for item in context["events"]],
-            list(neko_lol._TOGGLE_EVENTS),
+            list(neko_lol_companion._TOGGLE_EVENTS),
         )
         self.assertTrue(all(item["enabled"] for item in context["events"]))
         self.assertFalse(context["dry_run"])
@@ -651,7 +651,7 @@ class TestSessionLifecycle(unittest.IsolatedAsyncioTestCase):
         h = await self._harness()
         context = await h.plugin.lol_settings()
         for item in context["events"]:
-            self.assertEqual(item["label"], neko_lol._EVENT_LABELS[item["key"]])
+            self.assertEqual(item["label"], neko_lol_companion._EVENT_LABELS[item["key"]])
             self.assertRegex(item["label"], r"[一-鿿]")
 
     async def test_context_reflects_runtime_state(self):
@@ -680,7 +680,7 @@ class TestSessionLifecycle(unittest.IsolatedAsyncioTestCase):
     async def test_unknown_event_key_is_rejected(self):
         h = await self._harness()
         result = await h.plugin.set_announce(event="not_a_real_event", enabled=False)
-        self.assertIsInstance(result, neko_lol.Err)
+        self.assertIsInstance(result, neko_lol_companion.Err)
 
     async def test_disabling_summary_actually_silences_it(self):
         h = await self._harness()
@@ -762,7 +762,7 @@ class TestSessionLifecycle(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(h.plugin._cursor, -1, "游标没重置，会漏掉开局事件")
 
         # 新局的拆塔播报应当用新英雄/新阵营判断
-        cue = __import__("neko_lol.cues", fromlist=["x"]).build_event_cue(
+        cue = __import__("neko_lol_companion.cues", fromlist=["x"]).build_event_cue(
             {"EventName": "TurretKilled", "KillerName": "敌人A",
              "TurretKilled": "Turret_TOrder_L2_P3_2_0"},
             h.plugin._last_state,
@@ -1651,7 +1651,7 @@ class TestSessionLifecycle(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(h.pushed, "窗口结束后仍没有播报")
         payload = h.pushed[0]
         self.assertEqual(payload["ai_behavior"], "respond")
-        self.assertEqual(payload["source"], "neko_lol")
+        self.assertEqual(payload["source"], "neko_lol_companion")
         self.assertEqual(payload["parts"][0]["type"], "text")
         # 默认：提示文本不在聊天里出现
         self.assertEqual(payload["visibility"], [])
@@ -1725,11 +1725,11 @@ class TestSupportAssists(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self) -> None:
         self.clock = FakeClock()
-        self._real_time = neko_lol.time
-        neko_lol.time = self.clock  # type: ignore[assignment]
+        self._real_time = neko_lol_companion.time
+        neko_lol_companion.time = self.clock  # type: ignore[assignment]
 
     def tearDown(self) -> None:
-        neko_lol.time = self._real_time  # type: ignore[assignment]
+        neko_lol_companion.time = self._real_time  # type: ignore[assignment]
 
     async def _assist_run(self, lane_index: int, raw=None, *, map_number: int = 11):
         h = Harness(self.clock, raw)

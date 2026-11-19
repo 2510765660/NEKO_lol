@@ -1,4 +1,4 @@
-"""插件配置：把 plugin.toml 的 ``[neko_lol]`` 段变成有类型、有默认值的对象。
+"""插件配置：把 plugin.toml 的 ``[neko_lol_companion]`` 段变成有类型、有默认值的对象。
 
 单独成模块的理由：TOML 是用户手改的，类型和缺项都不可信。所有强制转换
 和默认值收敛在这里，主流程拿到的永远是干净的值，测试也不用碰 SDK。
@@ -80,7 +80,7 @@ def _bool_map(value: Any, defaults: dict[str, bool]) -> dict[str, bool]:
     return merged
 
 
-# [neko_lol] 段里被认可的标量键。用于把"键名打错"和"键写错段"
+# [neko_lol_companion] 段里被认可的标量键。用于把"键名打错"和"键写错段"
 # 变成一条明确的日志，而不是静默地悄悄用默认值。
 SCALAR_KEYS: frozenset[str] = frozenset(
     {
@@ -119,13 +119,13 @@ SCALAR_KEYS: frozenset[str] = frozenset(
     }
 )
 
-# [neko_lol] 段下的子表。
+# [neko_lol_companion] 段下的子表。
 SUB_TABLE_KEYS: frozenset[str] = frozenset({"announce"})
 
 
 @dataclass
 class PluginConfig:
-    """``[neko_lol]`` 段的类型化视图。"""
+    """``[neko_lol_companion]`` 段的类型化视图。"""
 
     enabled: bool = True
     dry_run: bool = False
@@ -225,10 +225,10 @@ class PluginConfig:
 
     @classmethod
     def unknown_keys(cls, section: Any) -> set[str]:
-        """挑出 [neko_lol] 段里我不认识的标量键。
+        """挑出 [neko_lol_companion] 段里我不认识的标量键。
 
         最常见的两种手滑：键名拼错，以及写了标量键但位置落在
-        ``[neko_lol.announce]`` 之类的子表之后（TOML 会把它归给子表）。
+        ``[neko_lol_companion.announce]`` 之类的子表之后（TOML 会把它归给子表）。
         两种情况都会静默退回默认值，所以要在启动时喊一声。
         """
         if not isinstance(section, dict):
@@ -243,7 +243,7 @@ class PluginConfig:
 
     @classmethod
     def from_raw(cls, section: Any) -> PluginConfig:
-        """从 ``[neko_lol]`` 段构造。传入非 dict 一律返回全默认配置。"""
+        """从 ``[neko_lol_companion]`` 段构造。传入非 dict 一律返回全默认配置。"""
         raw = section if isinstance(section, dict) else {}
         return cls(
             enabled=_bool(raw.get("enabled"), True),

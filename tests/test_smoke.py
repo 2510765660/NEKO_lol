@@ -6,5 +6,5 @@ def test_plugin_manifest_exists() -> None:
     manifest = root / "plugin.toml"
     assert manifest.is_file()
     text = manifest.read_text(encoding="utf-8")
-    assert 'id = "neko_lol"' in text
-    assert 'entry = "plugin.plugins.neko_lol:NekoLolPlugin"' in text
+    assert 'id = "neko_lol_companion"' in text
+    assert 'entry = "plugin.plugins.neko_lol_companion:NekoLolPlugin"' in text

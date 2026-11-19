@@ -14,6 +14,6 @@ jobs:
   verify:
     uses: Project-N-E-K-O/N.E.K.O/.github/workflows/plugin-market-verify.yml@main
     with:
-      plugin-id: neko_lol
+      plugin-id: neko_lol_companion
       neko-repository: Project-N-E-K-O/N.E.K.O
       neko-ref: main

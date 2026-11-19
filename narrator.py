@@ -243,7 +243,7 @@ class Narrator:
     def window_remaining(self, now: float | None = None) -> float:
         """窗口还剩多少秒。没开窗返回 0。
 
-        必须接受注入时钟：插件和测试台都用受控时钟（``neko_lol.time``），
+        必须接受注入时钟：插件和测试台都用受控时钟（``neko_lol_companion.time``），
         直接读 ``time.monotonic()`` 会算出错误的值（实测返回 0）。
         """
         if not self._pending:
@@ -370,7 +370,7 @@ class Narrator:
             return "dry_run"
 
         try:
-            result = self._push(cue.text, {"context_type": "neko_lol_event", **cue.meta})
+            result = self._push(cue.text, {"context_type": "neko_lol_companion_event", **cue.meta})
         except Exception as exc:  # 插件进程不能因为播报失败而崩
             self._log(f"[播报] push_message 抛异常（{cue.key}）：{type(exc).__name__}: {exc}")
             return "error"

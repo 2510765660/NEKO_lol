@@ -49,7 +49,7 @@
         }
       }
     },
-    "neko_lol": {
+    "neko_lol_companion": {
       "type": "object",
       "title": "League companion settings",
       "description": "How the character talks about your League of Legends matches.",

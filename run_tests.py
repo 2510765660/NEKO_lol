@@ -14,7 +14,7 @@ from pathlib import Path
 
 _HERE = Path(__file__).resolve().parent
 
-# neko_lol 的父目录（让 `import neko_lol` 成立）+ 插件目录（让 `import cues` 之类成立）
+# neko_lol_companion 的父目录（让 `import neko_lol_companion` 成立）+ 插件目录（让 `import cues` 之类成立）
 sys.path.insert(0, str(_HERE.parent))
 sys.path.insert(0, str(_HERE))
 sys.path.insert(0, str(_HERE / "tests"))

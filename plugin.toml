@@ -1,12 +1,12 @@
 [plugin]
-id = "neko_lol"
+id = "neko_lol_companion"
 name = "英雄联盟陪玩"
 type = "plugin"
 description = "把英雄联盟的对局事件和实时战绩喂给猫娘：局内关键事件播报、定期战况小结、赛后总结，并且可以在聊天里直接问当前战况。只读官方 Live Client Data API（127.0.0.1:2999），不读游戏内存、不注入、不发送任何操作指令。"
 short_description = "LOL 陪玩：局内事件播报 + 实时战绩问答，只读官方本地 API。"
 keywords = ["lol", "league of legends", "英雄联盟", "陪玩", "companion", "战绩", "对局", "live client data"]
 version = "0.1.1"
-entry = "plugin.plugins.neko_lol:NekoLolPlugin"
+entry = "plugin.plugins.neko_lol_companion:NekoLolPlugin"
 
 [plugin.author]
 name = "N.E.K.O 用户自建"
@@ -46,14 +46,14 @@ permissions = ["state:read", "action:call"]
 # ══════════════════════════════════════════════════════════════════
 #  运行配置
 #
-#  注意：TOML 里一旦打开 [neko_lol.xxx] 子表，后面的裸键就都归那个子表了。
-#  所以本文件把所有标量开关集中在 [neko_lol] 段内写完，唯一的子表
+#  注意：TOML 里一旦打开 [neko_lol_companion.xxx] 子表，后面的裸键就都归那个子表了。
+#  所以本文件把所有标量开关集中在 [neko_lol_companion] 段内写完，唯一的子表
 #  （announce）放在最末尾。往这里加配置时请保持这个顺序，
 #  否则新键会悄悄落进子表、读不到。
 #
 #  每一项都有内置默认值，删掉任何一行都不会让插件起不来。
 # ══════════════════════════════════════════════════════════════════
-[neko_lol]
+[neko_lol_companion]
 enabled = true
 
 # 干跑：走完整链路但只写日志、不真的让猫娘说话。第一次装建议设 true
@@ -149,7 +149,7 @@ post_game_summary = true
 user_chat_quiet_window_seconds = 0.0
 
 
-[neko_lol.announce]
+[neko_lol_companion.announce]
 game_start = true
 game_end = true
 first_blood = true
