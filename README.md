@@ -1,10 +1,10 @@
-# 英雄联盟陪玩（neko_lol_companion）
+# 英雄联盟陪玩（neko_lol）
 
 给 N.E.K.O 桌宠加一个英雄联盟陪玩插件：局内关键事件播报、定期战况小结、
 赛后总结，并且可以在聊天里直接问当前战况。
 
-- **插件 ID**：`neko_lol_companion`
-- **入口类**：`plugin.plugins.neko_lol_companion:NekoLolPlugin`
+- **插件 ID**：`neko_lol`
+- **入口类**：`plugin.plugins.neko_lol:NekoLolPlugin`
 - **数据来源**：Riot 官方 **Live Client Data API**（`127.0.0.1:2999`），只读
 - **支持区服**：国服（WeGame）与国际服通用；接口先试 https 再回落 http
 
@@ -459,7 +459,7 @@ show_prompt_in_chat = false    # 默认；想要调试就设 true
 改用户数据目录里的那份（**不是**插件源码目录里的）：
 
 ```
-%LOCALAPPDATA%\N.E.K.O\plugins\neko_lol_companion\config\plugin.toml
+%LOCALAPPDATA%\N.E.K.O\plugins\neko_lol\config\plugin.toml
 ```
 
 第一次运行时宿主会从 `config.example.toml` 复制一份出来。每一项都有默认值，
@@ -472,7 +472,7 @@ show_prompt_in_chat = false    # 默认；想要调试就设 true
 最常调的几项（**完整清单见 `config.example.toml` / `config.schema.json`**）：
 
 ```toml
-[neko_lol_companion]
+[neko_lol]
 # ── 播报节流 ─────────────────────────────────────────────────
 # 常规档两条之间至少隔这么久（秒）
 normal_gap_seconds = 3.0
@@ -524,7 +524,7 @@ aram_kills_ambient = true
 aram_death_only_notable = true
 
 # 完全不想听某类事件
-[neko_lol_companion.announce]
+[neko_lol.announce]
 turret_killed = false
 ```
 
@@ -533,7 +533,7 @@ turret_killed = false
 （用户在聊天时静默多久）、`post_game_summary`（赛后总结总开关）、
 `join_replay_max_game_time_seconds`（中途加入判定）。
 
-> **TOML 分段陷阱**：一旦写了 `[neko_lol_companion.announce]` 这种子表，后面的裸键就
+> **TOML 分段陷阱**：一旦写了 `[neko_lol.announce]` 这种子表，后面的裸键就
 > 都归子表了。加新配置时把标量键写在子表**之前**。插件启动时会检查有没有
 > 读不到的键并写进日志，改完扫一眼日志就知道有没有写错位置。
 
@@ -551,7 +551,7 @@ turret_killed = false
 { "虚空恐惧": "大虫子", "诺克萨斯之手": "诺手", "德玛西亚之力": "盖伦" }
 ```
 
-路径：`%LOCALAPPDATA%\N.E.K.O\plugins\neko_lol_companion\data\champion_aliases.json`
+路径：`%LOCALAPPDATA%\N.E.K.O\plugins\neko_lol\data\champion_aliases.json`
 （文件不存在就用接口原样，不会报错。国际服也可以用同一个文件把英文换成
 中文，键写英文名即可。）
 
@@ -625,7 +625,7 @@ python sim_instant.py
 ### 代码结构
 
 ```
-neko_lol_companion/
+neko_lol/
 ├── __init__.py          插件入口：定时器、状态机、LLM 工具、手动入口
 ├── live_client.py       Live Client Data API 客户端（只读，https→http 回落）
 ├── game_model.py        原始 JSON → 对局模型（纯函数，好测）

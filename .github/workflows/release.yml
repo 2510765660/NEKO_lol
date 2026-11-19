@@ -17,6 +17,6 @@ jobs:
   release:
     uses: Project-N-E-K-O/N.E.K.O/.github/workflows/plugin-market-release.yml@main
     with:
-      plugin-id: neko_lol_companion
+      plugin-id: neko_lol
       neko-repository: Project-N-E-K-O/N.E.K.O
       neko-ref: main

@@ -1,16 +1,16 @@
 # N.E.K.O 运行时配置模板（英雄联盟陪玩）
 #
 # 首次运行时宿主会把这份模板复制到用户数据目录：
-#   %LOCALAPPDATA%\N.E.K.O\plugins\neko_lol_companion\config\plugin.toml
+#   %LOCALAPPDATA%\N.E.K.O\plugins\neko_lol\config\plugin.toml
 # 之后改那份副本，不要改这里。
 #
 # 这里只列运行参数。每一项都有内置默认值，删掉任何一行都不会让插件坏掉。
 # 想恢复默认：把对应行删掉，或者整段清空。
 #
-# 注意 TOML 的段落规则：一旦打开 [neko_lol_companion.announce] 之类的子表，
+# 注意 TOML 的段落规则：一旦打开 [neko_lol.announce] 之类的子表，
 # 后面的裸键就都归那个子表了。加新配置时请把标量键写在子表之前。
 
-[neko_lol_companion]
+[neko_lol]
 enabled = true
 
 # 干跑：完整走一遍识别和仲裁，但只写日志、不真的让猫娘说话。
@@ -100,7 +100,7 @@ post_game_summary = true
 
 # ── 逐类开关 ─────────────────────────────────────────────────────
 # false = 完全不为这类事件开口（连合并都不进）。
-[neko_lol_companion.announce]
+[neko_lol.announce]
 game_start = true
 game_end = true
 first_blood = true

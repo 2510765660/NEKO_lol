@@ -13,9 +13,9 @@ from __future__ import annotations
 import unittest
 from pathlib import Path
 
-import neko_lol_companion as neko_lol_companion_module
-from neko_lol_companion import cues, game_model, milestones, narrator
-from neko_lol_companion.config import DEFAULT_ANNOUNCE, PluginConfig
+import neko_lol as neko_lol_module
+from neko_lol import cues, game_model, milestones, narrator
+from neko_lol.config import DEFAULT_ANNOUNCE, PluginConfig
 
 # 搜索路径由 tests/__init__.py 在包初始化时配好，所以上面这些 import 能
 # 保持在文件顶部（否则会被 lint 判 E402）。
@@ -1420,8 +1420,8 @@ class TestOnlyMyEvents(unittest.TestCase):
         from test_session import FakeClock, Harness
 
         clock = FakeClock()
-        real_time = neko_lol_companion_module.time
-        neko_lol_companion_module.time = clock
+        real_time = neko_lol_module.time
+        neko_lol_module.time = clock
         try:
             h = Harness(clock)
             asyncio.run(h.start())
@@ -1444,7 +1444,7 @@ class TestOnlyMyEvents(unittest.TestCase):
             self.assertEqual(len(h.pushed), before, f"不该播报却播了：{h.texts}")
             self.assertEqual(h.plugin._narrator.queue_depth, 0, "队友人头被攒进了窗口")
         finally:
-            neko_lol_companion_module.time = real_time
+            neko_lol_module.time = real_time
 
 
 class TestMyMultikill(unittest.TestCase):
@@ -1784,7 +1784,7 @@ class TestNarrator(unittest.TestCase):
 
     def test_merged_key_is_not_a_real_announce_switch(self):
         """合并 key 不该出现在 announce 开关表里 —— 否则关掉某个事件会误伤合并。"""
-        from neko_lol_companion import PluginConfig
+        from neko_lol import PluginConfig
         self.assertNotIn(narrator.MERGED_KEY, PluginConfig().announce)
 
     def test_milestone_does_not_join_the_merge_window(self):
@@ -2282,9 +2282,9 @@ class TestPluginToml(unittest.TestCase):
         """目录名等于插件 ID —— 但发布仓库是例外。
 
         两种布局都合法：
-        * **开发目录**：``Orca工作区/neko_lol_companion/`` —— 目录名 == id。
+        * **开发目录**：``Orca工作区/neko_lol/`` —— 目录名 == id。
         * **发布仓库**（市场要求根目录直接是 plugin.toml）：根目录叫
-          ``n.e.k.o_plugin_neko_lol_companion``，此时只能从 plugin.toml 读 id。
+          ``n.e.k.o_plugin_neko_lol``，此时只能从 plugin.toml 读 id。
         """
         plugin_id = self.raw["plugin"]["id"]
         self.assertTrue(plugin_id, "plugin.toml 必须有 id")
@@ -2302,34 +2302,34 @@ class TestPluginToml(unittest.TestCase):
         # entry 里的包路径永远是 plugin.plugins.<id>（宿主安装后的形态），
         # 与开发目录名无关。
         self.assertEqual(module_path, f"plugin.plugins.{self.raw['plugin']['id']}")
-        import neko_lol_companion
+        import neko_lol
 
         self.assertTrue(
-            hasattr(neko_lol_companion, class_name), f"entry 指向的 {class_name} 不存在"
+            hasattr(neko_lol, class_name), f"entry 指向的 {class_name} 不存在"
         )
 
     def test_no_unknown_config_keys(self):
         """键名写错、或者标量键写到了子表后面，都必须在这里被抓住。"""
-        unknown = PluginConfig.unknown_keys(self.raw["neko_lol_companion"])
+        unknown = PluginConfig.unknown_keys(self.raw["neko_lol"])
         self.assertEqual(unknown, set(), f"plugin.toml 里有读不到的配置键：{unknown}")
 
 
     def test_announce_keys_are_real_cue_keys(self):
         """announce 里不能出现插件根本不会产生的事件 key。"""
         produced = set(cues.PRIORITIES)
-        stray = set(self.raw["neko_lol_companion"]["announce"]) - produced
+        stray = set(self.raw["neko_lol"]["announce"]) - produced
         self.assertEqual(stray, set(), f"announce 里有不存在的事件：{stray}")
 
     def test_shipped_config_has_sane_window(self):
         """单一窗口模型下，唯一要检查的就是窗口长度本身。"""
-        cfg = PluginConfig.from_raw(self.raw["neko_lol_companion"])
+        cfg = PluginConfig.from_raw(self.raw["neko_lol"])
         self.assertEqual(cfg.invariant_warnings(), [], "出厂配置存在冲突")
         self.assertEqual(cfg.window_seconds, 10.0)
         self.assertEqual(cfg.normal_gap, 3.0)
         self.assertGreater(cfg.merge_max_items, 0)
 
     def test_shipped_config_parses_to_expected_values(self):
-        cfg = PluginConfig.from_raw(self.raw["neko_lol_companion"])
+        cfg = PluginConfig.from_raw(self.raw["neko_lol"])
         self.assertTrue(cfg.enabled)
         self.assertFalse(cfg.dry_run, "出厂配置不该默认干跑，否则用户以为坏了")
         self.assertTrue(cfg.post_game_summary)
@@ -2389,24 +2389,24 @@ class TestPluginToml(unittest.TestCase):
 
     def test_toggle_events_cover_all_announce_keys(self):
         """面板必须能控制每一个 announce 开关，且不能有重复或多余。"""
-        import neko_lol_companion
+        import neko_lol
 
-        self.assertEqual(set(neko_lol_companion._TOGGLE_EVENTS), set(DEFAULT_ANNOUNCE))
+        self.assertEqual(set(neko_lol._TOGGLE_EVENTS), set(DEFAULT_ANNOUNCE))
         self.assertEqual(
-            len(neko_lol_companion._TOGGLE_EVENTS),
-            len(set(neko_lol_companion._TOGGLE_EVENTS)),
+            len(neko_lol._TOGGLE_EVENTS),
+            len(set(neko_lol._TOGGLE_EVENTS)),
             "面板事件列表里有重复项",
         )
 
     def test_every_toggle_event_has_chinese_label(self):
         """面板用 context 下发的 label 渲染 —— 缺中文名会把原始 key 显示给用户。"""
-        import neko_lol_companion
+        import neko_lol
 
         self.assertEqual(
-            set(neko_lol_companion._EVENT_LABELS), set(neko_lol_companion._TOGGLE_EVENTS), "标签和开关项对不上"
+            set(neko_lol._EVENT_LABELS), set(neko_lol._TOGGLE_EVENTS), "标签和开关项对不上"
         )
-        for key in neko_lol_companion._TOGGLE_EVENTS:
-            label = neko_lol_companion._EVENT_LABELS.get(key, "")
+        for key in neko_lol._TOGGLE_EVENTS:
+            label = neko_lol._EVENT_LABELS.get(key, "")
             self.assertTrue(label, f"{key} 没有中文名")
             self.assertRegex(label, r"[一-鿿]", f"{key} 的名字不是中文：{label}")
 
@@ -2439,9 +2439,9 @@ class TestPluginToml(unittest.TestCase):
         """
         import asyncio
 
-        import neko_lol_companion
+        import neko_lol
 
-        plugin = neko_lol_companion.NekoLolPlugin(ctx=None)
+        plugin = neko_lol.NekoLolPlugin(ctx=None)
 
         class _Quiet:
             def info(self, *_a, **_k): pass
@@ -2450,16 +2450,16 @@ class TestPluginToml(unittest.TestCase):
             def debug(self, *_a, **_k): pass
 
         plugin.logger = _Quiet()
-        asyncio.run(plugin._load_config({"neko_lol_companion": {}}))
+        asyncio.run(plugin._load_config({"neko_lol": {}}))
         ctx = asyncio.run(plugin.lol_settings())
         groups = ctx["event_groups"]
         grouped: list[str] = []
         for group in groups:
             grouped.extend(group["keys"])
         self.assertEqual(
-            set(grouped), set(neko_lol_companion._TOGGLE_EVENTS),
-            f"分组和开关对不上：多 {set(grouped) - set(neko_lol_companion._TOGGLE_EVENTS)}"
-            f" 少 {set(neko_lol_companion._TOGGLE_EVENTS) - set(grouped)}",
+            set(grouped), set(neko_lol._TOGGLE_EVENTS),
+            f"分组和开关对不上：多 {set(grouped) - set(neko_lol._TOGGLE_EVENTS)}"
+            f" 少 {set(neko_lol._TOGGLE_EVENTS) - set(grouped)}",
         )
         self.assertEqual(len(grouped), len(set(grouped)), "分组里有重复 key")
         self.assertIn("milestone", grouped, "里程碑开关没有出现在面板分组里")
@@ -2532,9 +2532,9 @@ class TestPluginToml(unittest.TestCase):
         schema_path = _PLUGIN_DIR / "config.schema.json"
         self.assertTrue(schema_path.is_file(), "缺少 config.schema.json")
         schema = json.loads(schema_path.read_text(encoding="utf-8"))
-        props = schema["properties"]["neko_lol_companion"]["properties"]
+        props = schema["properties"]["neko_lol"]["properties"]
 
-        shipped = self.raw["neko_lol_companion"]
+        shipped = self.raw["neko_lol"]
         # 标量键 + announce 子表（schema 里把子表也当属性描述）
         toml_keys = {k for k, v in shipped.items() if not isinstance(v, dict)}
         if "announce" in shipped:
@@ -2557,8 +2557,8 @@ class TestPluginToml(unittest.TestCase):
         schema = json.loads(
             (_PLUGIN_DIR / "config.schema.json").read_text(encoding="utf-8")
         )
-        props = schema["properties"]["neko_lol_companion"]["properties"]
-        shipped = self.raw["neko_lol_companion"]
+        props = schema["properties"]["neko_lol"]["properties"]
+        shipped = self.raw["neko_lol"]
         for key, spec in props.items():
             if key == "announce":
                 continue
@@ -2575,7 +2575,7 @@ class TestPluginToml(unittest.TestCase):
         schema = json.loads(
             (_PLUGIN_DIR / "config.schema.json").read_text(encoding="utf-8")
         )
-        section = schema["properties"]["neko_lol_companion"]
+        section = schema["properties"]["neko_lol"]
         self.assertIn("zh-CN", section.get("x-title-i18n", {}), "段落缺中文标题")
 
         for key, spec in section["properties"].items():
@@ -2601,8 +2601,8 @@ class TestPluginToml(unittest.TestCase):
         example = tomllib.loads(
             (_PLUGIN_DIR / "config.example.toml").read_text(encoding="utf-8")
         )
-        shipped = self.raw["neko_lol_companion"]
-        example_section = example["neko_lol_companion"]
+        shipped = self.raw["neko_lol"]
+        example_section = example["neko_lol"]
 
         example_scalars = {
             k for k, v in example_section.items() if not isinstance(v, dict)
@@ -2625,8 +2625,8 @@ class TestPluginToml(unittest.TestCase):
 
         example = tomllib.loads(
             (_PLUGIN_DIR / "config.example.toml").read_text(encoding="utf-8")
-        )["neko_lol_companion"]
-        shipped = self.raw["neko_lol_companion"]
+        )["neko_lol"]
+        shipped = self.raw["neko_lol"]
         for key, value in example.items():
             if isinstance(value, dict):
                 continue

@@ -75,7 +75,7 @@ def streak_for(at: float) -> int:
 
 
 def _deps() -> tuple:
-    """配好 sys.path 并导入依赖，返回 (fixtures, neko_lol_companion, FakeClock, Harness)。
+    """配好 sys.path 并导入依赖，返回 (fixtures, neko_lol, FakeClock, Harness)。
 
     插件 import 只能放在函数里：路径设置必须先于 import，而"先在模块级写
     sys.path.insert、再 import"会被 lint 判 E402。
@@ -88,16 +88,16 @@ def _deps() -> tuple:
             sys.path.insert(0, path)
 
     # tests 包的初始化负责把插件目录接入 sys.path；发布仓库布局下它还会把
-    # 插件目录注册成 neko_lol_companion 包（这时目录名不是 neko_lol_companion，普通 import 找不到）。
+    # 插件目录注册成 neko_lol 包（这时目录名不是 neko_lol，普通 import 找不到）。
     import tests
 
     _ = tests.PLUGIN_DIR
 
     import fixtures
-    import neko_lol_companion
+    import neko_lol
     from test_session import FakeClock, Harness
 
-    return fixtures, neko_lol_companion, FakeClock, Harness
+    return fixtures, neko_lol, FakeClock, Harness
 
 
 def _make(event: tuple[str, ...], event_id: int, at: float) -> dict:
@@ -170,9 +170,9 @@ def _players() -> list:
 
 
 async def main() -> int:
-    fixtures, neko_lol_companion, FakeClock, Harness = _deps()
+    fixtures, neko_lol, FakeClock, Harness = _deps()
     clock = FakeClock()
-    neko_lol_companion.time = clock  # type: ignore[assignment]
+    neko_lol.time = clock  # type: ignore[assignment]
 
     h = Harness(clock)
     await h.start()

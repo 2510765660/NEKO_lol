@@ -39,8 +39,8 @@ def _setup_path() -> None:
         if path not in sys.path:
             sys.path.insert(0, path)
 
-    # tests 包的初始化负责把插件注册成 neko_lol_companion（发布仓库布局下目录名不是
-    # neko_lol_companion，直接 import 找不到）。
+    # tests 包的初始化负责把插件注册成 neko_lol（发布仓库布局下目录名不是
+    # neko_lol，直接 import 找不到）。
     import tests
 
     _ = tests.PLUGIN_DIR
@@ -48,8 +48,8 @@ def _setup_path() -> None:
 
 async def main() -> int:
     _setup_path()
-    from neko_lol_companion.game_model import MatchState
-    from neko_lol_companion.live_client import LiveClient, NotInGame
+    from neko_lol.game_model import MatchState
+    from neko_lol.live_client import LiveClient, NotInGame
 
     client = LiveClient(timeout=3.0)
     print(f"探测 {client.base_url}（http 回落={'开' if client.allow_http_fallback else '关'}）")

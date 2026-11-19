@@ -22,7 +22,7 @@ from typing import Any
 from .game_model import RESULT_LABELS, MatchState
 
 # 事件 → (节流配置 key, 优先级)。优先级越大越"值得打断"。
-# key 同时对应 plugin.toml 里的 [neko_lol_companion.announce] 和面板上的开关。
+# key 同时对应 plugin.toml 里的 [neko_lol.announce] 和面板上的开关。
 EVENT_KEYS: dict[str, str] = {
     "GameStart": "game_start",
     "FirstBlood": "first_blood",
@@ -789,7 +789,7 @@ def render_plain(cue: Cue) -> str:
 
 
 def is_announced(key: str, announce_flags: dict[str, bool]) -> bool:
-    """查 plugin.toml 的 [neko_lol_companion.announce] 开关。缺省视为开。"""
+    """查 plugin.toml 的 [neko_lol.announce] 开关。缺省视为开。"""
     return announce_flags.get(key, True)
 
 

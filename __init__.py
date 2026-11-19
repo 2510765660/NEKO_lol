@@ -141,7 +141,7 @@ _CHAMPION_ALIASES_FILE = "champion_aliases.json"
 _CHAMPION_NAMES_FILE = "champion_names.json"
 
 # 面板里可以逐项开关的播报类型。顺序 = 面板上的展示顺序。
-# 每个 key 同时是 [neko_lol_companion.announce] 的键、i18n 的 "events.<key>"、
+# 每个 key 同时是 [neko_lol.announce] 的键、i18n 的 "events.<key>"、
 # 以及 narrator 判断"要不要说"时看的那个 key。
 _TOGGLE_EVENTS: tuple[str, ...] = (
     "game_start",
@@ -1128,7 +1128,7 @@ class NekoLolPlugin(NekoPluginBase):
         #   * ai_behavior="respond" 仍然让模型读进去并回一句（带语音）。
         # 所以默认关掉时，猫娘照样说话，只是那段括号提示不占聊天窗口。
         result = self.push_message(
-            source="neko_lol_companion",
+            source="neko_lol",
             visibility=["chat"] if self._cfg.show_prompt_in_chat else [],
             ai_behavior="respond",
             parts=[{"type": "text", "text": text}],
@@ -1155,7 +1155,7 @@ class NekoLolPlugin(NekoPluginBase):
                 return
             except Exception:
                 pass
-        print(f"[neko_lol_companion] {message}")
+        print(f"[neko_lol] {message}")
 
     # ── 配置 ────────────────────────────────────────────────────
 
@@ -1177,7 +1177,7 @@ class NekoLolPlugin(NekoPluginBase):
             except Exception as exc:
                 self._log(f"[配置] 读取失败，全部使用默认值：{type(exc).__name__}: {exc}")
 
-        section = raw.get("neko_lol_companion")
+        section = raw.get("neko_lol")
         self._cfg = PluginConfig.from_raw(section)
         for warning in self._cfg.invariant_warnings():
             self._log(f"[配置] 冲突：{warning}")
@@ -1431,7 +1431,7 @@ class NekoLolPlugin(NekoPluginBase):
         self._cfg.announce[key] = want
         self._narrator.update_config(self._cfg.to_narrator())
         persisted = await self._persist_config(
-            {"neko_lol_companion": {"announce": {key: want}}}
+            {"neko_lol": {"announce": {key: want}}}
         )
         self._log(
             f"[设置] 播报 {key} → {'开' if want else '关'}"
@@ -1498,7 +1498,7 @@ class NekoLolPlugin(NekoPluginBase):
         want = bool(enabled)
         self._cfg.show_prompt_in_chat = want
         persisted = await self._persist_config(
-            {"neko_lol_companion": {"show_prompt_in_chat": want}}
+            {"neko_lol": {"show_prompt_in_chat": want}}
         )
         self._log(
             f"[设置] 聊天里显示提示文本 → {'开' if want else '关'}"
@@ -1510,7 +1510,7 @@ class NekoLolPlugin(NekoPluginBase):
         want = bool(enabled)
         self._cfg.dry_run = want
         self._narrator.update_config(self._cfg.to_narrator())
-        persisted = await self._persist_config({"neko_lol_companion": {"dry_run": want}})
+        persisted = await self._persist_config({"neko_lol": {"dry_run": want}})
         self._log(
             f"[设置] 干跑 → {'开' if want else '关'}"
             f"（持久化{'成功' if persisted else '失败，本次运行内仍生效'}）"
