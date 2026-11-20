@@ -2513,6 +2513,44 @@ class TestPluginToml(unittest.TestCase):
         self.assertIn("show_prompt_in_chat: bool = False", (
             _PLUGIN_DIR / "config.py").read_text(encoding="utf-8"))
 
+    def test_every_panel_action_has_its_own_entry(self):
+        """每个面板 action 必须紧跟自己的 @plugin_entry 和 def。
+
+        实测踩过：给 set_show_prompt_in_chat 插装饰器时，把 set_dry_run 的
+        装饰器块切断了 —— 两个函数共用同一套装饰器，面板上点「在聊天里
+        显示提示文本」毫无反应。
+        """
+        import re
+
+        src = (_PLUGIN_DIR / "__init__.py").read_text(encoding="utf-8")
+        # 按装饰器块切分：每段 "@ui.action(...)" 到下一个 "async def" 之间
+        # 必须同时出现 @plugin_entry，且两者的 id= 一致，最后接上函数。
+        pattern = re.compile(
+            r"@ui\.action\(\s*id=\"([a-z_]+)\"(.*?)"
+            r"@plugin_entry\(\s*id=\"([a-z_]+)\"(.*?)"
+            r"async def ([a-z_]+)\(",
+            re.S,
+        )
+        found = {m.group(1): m for m in pattern.finditer(src)}
+        for name in ("set_announce", "set_dry_run", "set_show_prompt_in_chat"):
+            self.assertIn(name, found, f"面板 action {name} 没有被正确注册")
+        for action_id, m in found.items():
+            entry_id, func = m.group(3), m.group(5)
+            self.assertEqual(action_id, entry_id,
+                             f"{action_id} 的 action/entry id 不一致")
+            self.assertEqual(action_id, func,
+                             f"{action_id} 的 id 与函数名 {func} 不一致")
+
+        # 反向检查：不能有孤立的 @ui.action（后面没有 @plugin_entry）
+        isolated = re.findall(
+            r"@ui\.action\([^)]*?id=\"([a-z_]+)\".*?(?=async def|@plugin_entry)",
+            src, re.S,
+        )
+        self.assertEqual(
+            set(isolated) - set(found), set(),
+            "有 ui.action 没有紧跟 plugin_entry",
+        )
+
     def test_panel_has_tabs_and_progress(self):
         """面板按 tab 分区，里程碑用 Progress 显示完成度。"""
         source = (_PLUGIN_DIR / "ui" / "panel.tsx").read_text(encoding="utf-8")

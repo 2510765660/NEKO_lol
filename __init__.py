@@ -1447,30 +1447,6 @@ class NekoLolPlugin(NekoPluginBase):
         )
 
     @ui.action(
-        id="set_dry_run",
-        label=tr("actions.set_dry_run.label", default="切换干跑"),
-        refresh_context=True,
-    )
-    @plugin_entry(
-        id="set_dry_run",
-        name=tr("entries.set_dry_run.name", default="切换干跑"),
-        description=tr(
-            "entries.set_dry_run.description",
-            default="干跑模式下完整识别和仲裁，但只写日志、不让猫娘说话。由插件面板调用。",
-        ),
-        input_schema={
-            "type": "object",
-            "properties": {
-                "enabled": {
-                    "type": "boolean",
-                    "description": "true 进入干跑（不真的播报），false 恢复正常。",
-                },
-            },
-            "required": ["enabled"],
-            "additionalProperties": False,
-        },
-    )
-    @ui.action(
         id="set_show_prompt_in_chat",
         label=tr("actions.set_show_prompt_in_chat.label", default="切换提示文本显示"),
         refresh_context=True,
@@ -1506,6 +1482,30 @@ class NekoLolPlugin(NekoPluginBase):
         )
         return Ok({"enabled": want, "persisted": persisted})
 
+    @ui.action(
+        id="set_dry_run",
+        label=tr("actions.set_dry_run.label", default="切换干跑"),
+        refresh_context=True,
+    )
+    @plugin_entry(
+        id="set_dry_run",
+        name=tr("entries.set_dry_run.name", default="切换干跑"),
+        description=tr(
+            "entries.set_dry_run.description",
+            default="干跑模式下完整识别和仲裁，但只写日志、不让猫娘说话。由插件面板调用。",
+        ),
+        input_schema={
+            "type": "object",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "description": "true 进入干跑（不真的播报），false 恢复正常。",
+                },
+            },
+            "required": ["enabled"],
+            "additionalProperties": False,
+        },
+    )
     async def set_dry_run(self, enabled: bool = True, **_):
         want = bool(enabled)
         self._cfg.dry_run = want
